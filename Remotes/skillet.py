@@ -19,6 +19,12 @@ class SkilletCollection:
     def get_skillet(self, skillet_name):
         return self.skillet_map[skillet_name]
 
+    def print_all_skillets(self):
+        for name, skillet in self.skillet_map.items():
+            print(name)
+            skillet.print_all_snippets()
+
+
 class Skillet:
     def __init__(self, name, skillet_type, supported_versions):
         self.name = name
@@ -36,6 +42,12 @@ class Skillet:
     def get_snippets(self):
         return self.snippets
 
+    def print_all_snippets(self):
+        for name, snippets in self.snippets.items():
+            print("  " + name)
+            for snippet in snippets:
+                print("    " + snippet.xpath)
+
 class Snippet:
     """
     Snippet represents an XML blob along with some metadata such as xpath and required variables
@@ -47,6 +59,7 @@ class Snippet:
 
         self.rendered_xpath = ""
         self.rendered_xmlstr = ""
+
     def get_xpath(self):
         return self.xpath
 

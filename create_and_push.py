@@ -10,6 +10,8 @@ from colorama import init as colorama_init
 import re
 from colorama import Fore, Back, Style
 import getpass
+import argparse
+from Remotes import Git
 
 """
 Create-and-push
@@ -314,12 +316,30 @@ def check_resp(r, print_result=True):
             print("{}{} : Failed.{}".format(Fore.RED, r.text, Style.RESET_ALL))
         return False
 
+GIT_SKILLET_INDEX = {
+    "iron-skillet": "https://github.com/adambaumeister/iron-skillet.git"
+}
 
 def main():
+    parser = argparse.ArgumentParser(description="Deploy a Skillet to a PANOS device from one of the possible repo types.")
+    parser.add_argument('repository', default="iron-skillet", metavar="r", help="Name of skillet to use")
+    parser.add_argument('repotype', default="git", help="Type of skillet repo")
+    args = parser.parse_args()
+
+    if args.repotype == "git":
+        repo_url = GIT_SKILLET_INDEX[args.repository]
+        repo_name = args.repository
+        g = Git(repo_url)
+        g.clone(repo_name)
+        sc = g.build()
+    else:
+        print("No other skillet types currently supported.")
+        exit(1)
+
     requests.packages.urllib3.disable_warnings()
     colorama_init()
     if len(sys.argv) == 1:
-        print("printing available iron-skillet snippets")
+        print("printing available {} snippets".format(repo_name))
         r = generate_snippet("panorama")
         for result in r:
             print("{} : {}".format(result["name"], result["xpath"]))
