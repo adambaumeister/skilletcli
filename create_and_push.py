@@ -162,7 +162,6 @@ def get_type(panos):
     elem = root.findall("./result/system/model")
     return elem[0].text
 
-
 def generate_snippet(config_type, snippet_names=None):
     """
     Generate just a snippet for the given snippet_names, or all if asked.
@@ -314,8 +313,6 @@ def check_resp(r, print_result=True):
         if print_result:
             print("{}{} : Failed.{}".format(Fore.RED, r.text, Style.RESET_ALL))
         return False
-
-
 
 
 def main():

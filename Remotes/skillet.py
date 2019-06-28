@@ -1,3 +1,4 @@
+from jinja2 import Template
 
 class SkilletCollection:
     """
@@ -15,6 +16,9 @@ class SkilletCollection:
         self.skillet_map[skillet_name] = s
         return s
 
+    def get_skillet(self, skillet_name):
+        return self.skillet_map[skillet_name]
+
 class Skillet:
     def __init__(self, name, skillet_type, supported_versions):
         self.name = name
@@ -29,6 +33,9 @@ class Skillet:
     def add_snippets(self, snippets):
         self.snippets = snippets
 
+    def get_snippets(self):
+        return self.snippets
+
 class Snippet:
     """
     Snippet represents an XML blob along with some metadata such as xpath and required variables
@@ -36,3 +43,19 @@ class Snippet:
     def __init__(self, xpath, xmlstr):
         self.xpath = xpath
         self.xmlstr = xmlstr
+        self.metadata = {}
+
+        self.rendered_xpath = ""
+        self.rendered_xmlstr = ""
+    def get_xpath(self):
+        return self.xpath
+
+    def set_metadata(self, metadata):
+        self.metadata = metadata
+        
+    def template(self, context):
+        t = Template(self.xpath)
+        self.rendered_xpath = t.render(context)
+
+        t = Template(self.xpath)
+        self.rendered_xmlstr = t.render(context)
