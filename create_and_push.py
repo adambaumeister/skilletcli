@@ -164,100 +164,6 @@ def get_type(panos):
     elem = root.findall("./result/system/model")
     return elem[0].text
 
-def generate_snippet(config_type, snippet_names=None):
-    """
-    Generate just a snippet for the given snippet_names, or all if asked.
-
-    Uses .meta-cnc.yaml to determine the snippets and xpath values based om the names passed to this function.
-
-    :param config_type: currently supported: 'panos' or 'panorama'
-    :param snippet_names: list: List of snippet or snippet group names.
-    :return: dict: {"name": snippet name, "element": string element value, "xpath": path to element (from metadata file)}
-    """
-    template_dir_paths = [
-        os.path.join('..', 'templates'),
-        os.path.join('templates')
-    ]
-    for tp in template_dir_paths:
-        if os.path.exists(tp):
-            template_dir_path = tp
-
-    if not template_dir_path:
-        raise FileNotFoundError("Template directory not found in any known location.")
-
-    metadata_file = os.path.abspath(os.path.join(template_dir_path, config_type, 'snippets'.format(config_type), '.meta-cnc.yaml'))
-    try:
-        with open(metadata_file, 'r') as snippet_metadata:
-            service_config = oyaml.safe_load(snippet_metadata.read())
-
-    except IOError as ioe:
-        print(f'Could not open metadata file {metadata_file}')
-        print(ioe)
-        sys.exit()
-
-    config_path = os.path.abspath(os.path.join(template_dir_path, config_type))
-
-    xml_snippets = []
-
-
-    if snippet_names:
-        sn_full = []
-        # if the arg is a group, we convert to the underlying snippets
-        for sn in snippet_names:
-            if sn in service_config["quick_groups"]:
-                sn_full = sn_full + service_config["quick_groups"][sn]
-            else:
-                sn_full.append(sn)
-
-        for xml_snippet in service_config['snippets']:
-            if xml_snippet['name'] in sn_full:
-                xml_snippets.append(xml_snippet)
-    else:
-        xml_snippets = service_config['snippets']
-
-
-    result = []
-    # iterator through the metadata snippets load order
-    # parse the snippets into XML objects
-    # attach to the full_config dom
-    for xml_snippet in xml_snippets:
-        # xml_snippet is a set of attributes in the .meta-cnc.yaml file
-        # that includes the xpaths and files listed in the proper load order
-        snippet_name = xml_snippet['file']
-        snippet_path = os.path.join(config_path, 'snippets'.format(config_type), snippet_name)
-
-        # skip snippets that aren't actually there for some reason
-        if not os.path.exists(snippet_path):
-            print(snippet_path)
-            print('this snippet does not actually exist!')
-            sys.exit()
-
-        # read them in
-        with open(snippet_path, 'r') as snippet_obj:
-            snippet_string = snippet_obj.read()
-
-        if type(snippet_string) is str:
-            config_variables = 'config_variables.yaml'
-            # create dict of values for the jinja template render
-            context = create_context(config_variables)
-            t = Template(xml_snippet["xpath"])
-            xpath = t.render(context)
-
-            try:
-                # If this is an oversized snippet split it up
-                strings = split_snippet(snippet_string)
-                for s in strings:
-                    t2 = Template(s)
-                    r = t2.render(context)
-                    result.append({"name": xml_snippet["name"], "element": r, "xpath": xpath})
-            except TemplateAssertionError:
-                # This is due to a missing filder (md5_hash) because of the altern method of templating
-                # This should be fixed
-                print("{} not currently supported.".format(xml_snippet["name"]))
-
-    return result
-
-
 def split_snippet(snippet_string):
     """
     Cuts an oversized snippet into smaller snippets on the basis that most snippets are
@@ -322,8 +228,12 @@ GIT_SKILLET_INDEX = {
 
 def main():
     parser = argparse.ArgumentParser(description="Deploy a Skillet to a PANOS device from one of the possible repo types.")
-    parser.add_argument('repository', default="iron-skillet", metavar="r", help="Name of skillet to use")
-    parser.add_argument('repotype', default="git", help="Type of skillet repo")
+    parser.add_argument('--repository', default="iron-skillet", metavar="repo_url", help="Name of skillet to use")
+    parser.add_argument('--repotype', default="git", help="Type of skillet repo")
+    parser.add_argument("--config", default="config_variables.yaml", help="Path to YAML variable configuration file.")
+    parser.add_argument("--snippetstack", default="snippets", help="Snippet stack to use. ")
+    parser.add_argument("--configuration", default="snippets", help="Snippet stack to use. ")
+    parser.add_argument("snippetnames", help="List of snippets to push by name.", nargs="*")
     args = parser.parse_args()
 
     if args.repotype == "git":
@@ -340,9 +250,7 @@ def main():
     colorama_init()
     if len(sys.argv) == 1:
         print("printing available {} snippets".format(repo_name))
-        r = generate_snippet("panorama")
-        for result in r:
-            print("{} : {}".format(result["name"], result["xpath"]))
+        sc.print_all_skillets()
         sys.exit(0)
     else:
         addr = env_or_prompt("address", prompt_long="address:port (localhost:9443) of PANOS Device to configure: ")
@@ -350,13 +258,17 @@ def main():
         pw = env_or_prompt("password", secret=True)
         fw = Panos(addr, user, pw)
         t = fw.get_type()
+
         # This is unneeded i think.
         if t != "Panorama":
             t = "panos"
-        result = generate_snippet(t.lower(), sys.argv[1:])
-        for r in result:
-            print("Doing {} at {}...".format(r["name"], r["xpath"]), end="")
-            r = set_at_path(fw, r["xpath"], r["element"])
+
+        skillet = sc.get_skillet(t)
+        context = create_context(args.config)
+        skillet.template(context)
+        for snippet in skillet.select_snippets(args.snippetstack, args.snippetnames):
+            print("Doing {} at {}...".format(snippet.name, snippet.rendered_xpath))
+            r = set_at_path(fw, snippet.rendered_xpath, snippet.rendered_xmlstr)
             check_resp(r)
 
 

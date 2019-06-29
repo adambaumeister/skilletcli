@@ -1,4 +1,7 @@
-from jinja2 import Template
+from jinja2 import Template, Environment, BaseLoader
+from passlib.hash import des_crypt
+from passlib.hash import md5_crypt
+from passlib.hash import sha512_crypt
 
 class SkilletCollection:
     """
@@ -28,7 +31,7 @@ class SkilletCollection:
 class Skillet:
     def __init__(self, name, skillet_type, supported_versions):
         self.name = name
-        self.snippets = {}
+        self.snippet_stack = {}
         self.type = skillet_type
         self.supported_versions = supported_versions
 
@@ -37,16 +40,30 @@ class Skillet:
         return s
 
     def add_snippets(self, snippets):
-        self.snippets = snippets
+        self.snippet_stack = snippets
 
     def get_snippets(self):
-        return self.snippets
+        return self.snippet_stack
 
     def print_all_snippets(self):
-        for name, snippets in self.snippets.items():
+        for name, snippets in self.snippet_stack.items():
             print("  " + name)
             for snippet in snippets:
-                print("    " + snippet.xpath)
+                print("    " + snippet.name)
+
+    def template(self, context):
+        for name, snippets in self.snippet_stack.items():
+            for snippet in snippets:
+                snippet.template(context)
+
+    def select_snippets(self, stack_name, names):
+        r = []
+        for snippet in self.snippet_stack[stack_name]:
+            if snippet.name in names:
+                r.append(snippet)
+
+        return r
+
 
 class Snippet:
     """
@@ -56,6 +73,7 @@ class Snippet:
         self.xpath = xpath
         self.xmlstr = xmlstr
         self.metadata = {}
+        self.name = ""
 
         self.rendered_xpath = ""
         self.rendered_xmlstr = ""
@@ -67,8 +85,21 @@ class Snippet:
         self.metadata = metadata
         
     def template(self, context):
-        t = Template(self.xpath)
+        e = Environment(loader=BaseLoader)
+        e.filters["md5_hash"] = md5_hash
+
+        t = e.from_string(self.xpath)
         self.rendered_xpath = t.render(context)
 
-        t = Template(self.xpath)
+        t = e.from_string(self.xmlstr)
         self.rendered_xmlstr = t.render(context)
+
+# define functions for custom jinja filters
+def md5_hash(txt):
+    '''
+    Returns the MD5 Hashed secret for use as a password hash in the PanOS configuration
+    :param txt: text to be hashed
+    :return: password hash of the string with salt and configuration information. Suitable to place in the phash field
+    in the configurations
+    '''
+    return md5_crypt.hash(txt)

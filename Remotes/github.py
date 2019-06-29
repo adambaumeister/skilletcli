@@ -120,6 +120,7 @@ class Git:
             if os.path.isfile(snippet_file):
                 xmlstr = open(snippet_file).read()
                 s = Snippet(snippet_xpath, xmlstr)
+                s.name = snippet_def["name"]
                 s.set_metadata(metadata)
                 snippets.append(s)
 
