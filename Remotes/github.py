@@ -22,6 +22,10 @@ class Git:
         :param repo_url: URL path to repository.
         :param store: Directory to store repository in. Defaults to the current directory.
         """
+        if not check_git_exists():
+            print("A git client is required to use this repository.")
+            print("See README.md for more details.")
+            exit(1)
         self.repo_url = repo_url
         self.store = store
         self.Repo = None
@@ -49,8 +53,13 @@ class Git:
                 return path
 
         self.Repo = Repo.clone_from(self.repo_url, path)
+
         self.path = path
         return path
+
+    def branch(self, branch_name):
+        print("Checking out: "+branch_name)
+        self.Repo.git.checkout(branch_name)
 
     def build(self):
         """
@@ -125,3 +134,7 @@ class Git:
                 snippets.append(s)
 
         return snippets
+
+
+def check_git_exists():
+    return shutil.which("git")

@@ -26,8 +26,10 @@ Usage:
     python create_and_push.py snippetname1 snippetname2 
     Push the listed snippetnames
 """
-
-MAX_CHAR_LIMIT = 12000
+# Index of git based skillet repositories
+GIT_SKILLET_INDEX = {
+    "iron-skillet": "https://github.com/PaloAltoNetworks/iron-skillet.git"
+}
 class Panos:
     """
     PANOS Device. Could be a firewall or PANORAMA.
@@ -109,8 +111,17 @@ def create_context(config_var_file):
             variables = oyaml.safe_load(var_metadata.read())
 
     except IOError as ioe:
+        fail_message = """
+        Could not open the variables file.
+        
+        A variables file containing variable defintions is required to template the XML snippets.
+        
+        See the README.md file for more information.
+        
+        """
         print(f'Could not open metadata file {config_var_file}')
         print(ioe)
+        print(fail_message)
         sys.exit()
 
     # grab the metadata values and convert to key-based dictionary
@@ -165,7 +176,7 @@ def get_type(panos):
     return elem[0].text
 
 def env_or_prompt(prompt, prompt_long=None, secret=False):
-    k = "IS_{}".format(prompt).upper()
+    k = "SKCLI_{}".format(prompt).upper()
     e = os.getenv(k)
     if e:
         return e
@@ -193,17 +204,17 @@ def check_resp(r, print_result=True):
             print("{}{} : Failed.{}".format(Fore.RED, r.text, Style.RESET_ALL))
         return False
 
-GIT_SKILLET_INDEX = {
-    "iron-skillet": "https://github.com/adambaumeister/iron-skillet.git"
-}
+
 
 def main():
     parser = argparse.ArgumentParser(description="Deploy a Skillet to a PANOS device from one of the possible repo types.")
-    parser.add_argument('--repository', default="iron-skillet", metavar="repo_url", help="Name of skillet to use")
+    parser.add_argument('--repository', default="iron-skillet", metavar="repo_name", help="Name of skillet to use ({})"
+                        .format(", ".join(GIT_SKILLET_INDEX.keys())))
     parser.add_argument('--repotype', default="git", help="Type of skillet repo")
     parser.add_argument("--config", default="config_variables.yaml", help="Path to YAML variable configuration file.")
     parser.add_argument("--snippetstack", default="snippets", help="Snippet stack to use. ")
-    parser.add_argument("--configuration", default="snippets", help="Snippet stack to use. ")
+    parser.add_argument("--branch", help="Git repo branch to use.")
+    parser.add_argument("--refresh", help="Refresh the cloned repository directory.", action='store_true')
     parser.add_argument("snippetnames", help="List of snippets to push by name.", nargs="*")
     args = parser.parse_args()
 
@@ -211,7 +222,10 @@ def main():
         repo_url = GIT_SKILLET_INDEX[args.repository]
         repo_name = args.repository
         g = Git(repo_url)
-        g.clone(repo_name)
+        g.clone(repo_name, ow=args.refresh)
+        if args.branch:
+            g.branch(args.branch)
+
         sc = g.build()
     else:
         print("No other skillet types currently supported.")
@@ -219,7 +233,7 @@ def main():
 
     requests.packages.urllib3.disable_warnings()
     colorama_init()
-    if len(sys.argv) == 1:
+    if len(args.snippetnames) == 0:
         print("printing available {} snippets".format(repo_name))
         sc.print_all_skillets()
         sys.exit(0)
