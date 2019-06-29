@@ -1,0 +1,5 @@
+oyaml
+gitpython
+colorama
+jinja2
+passlib

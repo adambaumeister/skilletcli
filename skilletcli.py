@@ -3,9 +3,7 @@ import sys
 import oyaml
 import requests
 from xml.etree import ElementTree
-from jinja2 import Template
 from urllib3.exceptions import ProtocolError
-from jinja2.exceptions import TemplateAssertionError
 from colorama import init as colorama_init
 import re
 from colorama import Fore, Back, Style

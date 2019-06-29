@@ -12,8 +12,24 @@ To use skilletcli, a Git client must be installed.
 Linux users can use their preferred package manager.
 
 ### Getting the code
+**windows/linux**
+
 The latest release can be found [in the releases page for this project](https://github.com/adambaumeister/skilletcli/releases).
 skilletCLI does not use an installer and runs using the one binary.
+
+**OSX**
+
+Currently skilletcli is not cross-compiled for mac. To use skilletcli, you must
+checkout the code and run with Python 3+.
+
+```bash
+git checkout https://github.com/adambaumeister/skilletcli.git
+python3 -m venv env
+source env/bin/activate
+cd skilletcli
+pip install -r requirements.txt
+python skilletcli
+```
 
 ### Preparing the environment
 SkilletCLI requires a variable file to be populated before use.
