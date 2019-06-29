@@ -1,5 +1,5 @@
 from Remotes import Git
-from create_and_push import create_context
+from skilletcli import create_context
 
 def test_git_clone():
     g = Git("https://github.com/adambaumeister/iron-skillet.git")

@@ -5,12 +5,18 @@ matrix:
     - name: "Python 3.7.1 on Xenial Linux"
       python: 3.7           # this works for Linux but is ignored on macOS or Windows
       dist: xenial          # required for Python >= 3.7
+      after_install:
+        - pyinstaller --onefile skilletcli
+        - ls -l dist
     - name: "Python 3.7.2 on macOS"
       os: osx
       osx_image: xcode10.2  # Python 3.7.2 running on macOS 10.14.3
       language: shell       # 'language: python' is an error on Travis CI macOS
       # python: 3.7         # 'python:' is ignored on Travis CI macOS
       before_install: python3 --version ; pip3 --version ; sw_vers
+      after_install:
+        - pyinstaller --onefile skilletcli --windowed
+        - ls -l dist
     - name: "Python 3.7.3 on Windows"
       os: windows           # Windows 10.0.17134 N/A Build 17134
       language: shell       # 'language: python' is an error on Travis CI Windows
@@ -19,6 +25,11 @@ matrix:
         - choco install python  # this install takes at least 1 min 30 sec
         - python -m pip install --upgrade pip
       env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
+      after_install:
+        - pyinstaller --onefile skilletcli
+        - dir dist
+
+script: echo "no tests yet!"
 install:
   - pip3 install --upgrade pip
   - pip3 install -r requirements.txt
