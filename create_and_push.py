@@ -164,35 +164,6 @@ def get_type(panos):
     elem = root.findall("./result/system/model")
     return elem[0].text
 
-def split_snippet(snippet_string):
-    """
-    Cuts an oversized snippet into smaller snippets on the basis that most snippets are
-    a list of <entry> objects
-    :param snippet_string:
-    :return:
-    """
-    length = len(snippet_string)
-
-    if length > 12000:
-        # Wrap the xml in root elements so we can parse it
-        snippet_string = "<root>" + snippet_string + "</root>"
-        root = ElementTree.fromstring(snippet_string)
-        elems = root.findall("./entry")
-    else:
-        return [snippet_string]
-
-    xmlstrings = []
-    if not elems:
-        print("Error: Oversized snippet that cannot be split, exiting.")
-        exit(1)
-
-    for e in elems:
-        xmlstr = ElementTree.tostring(e)
-        xmlstr = xmlstr.decode("utf-8")
-        xmlstrings.append(xmlstr)
-
-    return xmlstrings
-
 def env_or_prompt(prompt, prompt_long=None, secret=False):
     k = "IS_{}".format(prompt).upper()
     e = os.getenv(k)
@@ -267,7 +238,7 @@ def main():
         context = create_context(args.config)
         skillet.template(context)
         for snippet in skillet.select_snippets(args.snippetstack, args.snippetnames):
-            print("Doing {} at {}...".format(snippet.name, snippet.rendered_xpath))
+            print("Doing {} at {}...".format(snippet.name, snippet.rendered_xpath), end="")
             r = set_at_path(fw, snippet.rendered_xpath, snippet.rendered_xmlstr)
             check_resp(r)
 

@@ -2,6 +2,7 @@ from jinja2 import Template, Environment, BaseLoader
 from passlib.hash import des_crypt
 from passlib.hash import md5_crypt
 from passlib.hash import sha512_crypt
+from xml.etree import ElementTree
 
 class SkilletCollection:
     """
@@ -60,10 +61,42 @@ class Skillet:
         r = []
         for snippet in self.snippet_stack[stack_name]:
             if snippet.name in names:
-                r.append(snippet)
+                # If it needs to be split up
+                r = r + self.split_snippet(snippet)
 
         return r
 
+    def split_snippet(self, snippet):
+        """
+        Cuts an oversized snippet into smaller snippets on the basis that most snippets are
+        a list of <entry> objects
+        :param snippet_string:
+        :return:
+        """
+        snippet_string = snippet.rendered_xmlstr
+        length = len(snippet_string)
+
+        if length > 12000:
+            # Wrap the xml in root elements so we can parse it
+            snippet_string = "<root>" + snippet_string + "</root>"
+            root = ElementTree.fromstring(snippet_string)
+            elems = root.findall("./entry")
+        else:
+            return [snippet]
+
+        new_snippets = []
+        if not elems:
+            print("Error: Oversized snippet that cannot be split, exiting.")
+            exit(1)
+
+        for e in elems:
+            xmlstr = ElementTree.tostring(e)
+            xmlstr = xmlstr.decode("utf-8")
+            s = snippet.copy()
+            s.rendered_xmlstr = xmlstr
+            new_snippets.append(s)
+
+        return new_snippets
 
 class Snippet:
     """
@@ -93,6 +126,12 @@ class Snippet:
 
         t = e.from_string(self.xmlstr)
         self.rendered_xmlstr = t.render(context)
+
+    def copy(self):
+        s = Snippet(self.xpath, self.xmlstr)
+        s.rendered_xmlstr = self.rendered_xmlstr
+        s.rendered_xpath = self.rendered_xpath
+        return s
 
 # define functions for custom jinja filters
 def md5_hash(txt):
