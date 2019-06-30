@@ -2,7 +2,7 @@ from Remotes import Git
 from skilletcli import create_context
 
 def test_build():
-    g = Git("https://github.com/adambaumeister/iron-skillet.git")
+    g = Git("https://github.com/PaloAltoNetworks/iron-skillet.git")
     g.clone("iron-skillet")
     sc = g.build()
     sc.print_all_skillets()
@@ -10,7 +10,7 @@ def test_build():
     assert len(sc.skillet_map.values()) > 0
 
 def test_context():
-    g = Git("https://github.com/adambaumeister/iron-skillet.git")
+    g = Git("https://github.com/PaloAltoNetworks/iron-skillet.git")
     g.clone("iron-skillet")
     sc = g.build()
     context = create_context("config_variables.yaml")
@@ -21,5 +21,3 @@ def test_context():
         print("{} {}".format(snippet.name, snippet.rendered_xmlstr))
 
     assert len(snippets) > 0
-
-test_context()
