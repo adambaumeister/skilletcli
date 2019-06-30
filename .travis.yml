@@ -23,7 +23,7 @@ matrix:
       osx_image: xcode10.2  # Python 3.7.2 running on macOS 10.14.3
       language: shell       # 'language: python' is an error on Travis CI macOS
       # python: 3.7         # 'python:' is ignored on Travis CI macOS
-      before_install: python3 --version ; pip3 --version ; sw_vers
+      before_install: python3 --version ; pip3 --version ; sw_vers ; pip3 install pytest
       after_success:
         - pyinstaller --onefile skilletcli.py --windowed
         - mv dist/skilletcli dist/skilletcli-mac
@@ -44,6 +44,7 @@ matrix:
       before_install:
         - choco install python  # this install takes at least 1 min 30 sec
         - python -m pip install --upgrade pip
+        - python -m pip install pytest
       env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
       after_success:
         - pyinstaller --onefile skilletcli.py
