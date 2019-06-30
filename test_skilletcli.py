@@ -1,17 +1,13 @@
 from Remotes import Git
 from skilletcli import create_context
 
-def test_git_clone():
-    g = Git("https://github.com/adambaumeister/iron-skillet.git")
-    g.clone("iron-skillet")
-
 def test_build():
     g = Git("https://github.com/adambaumeister/iron-skillet.git")
     g.clone("iron-skillet")
     sc = g.build()
     sc.print_all_skillets()
 
-    assert len(sc.skillet_map.values() > 0)
+    assert len(sc.skillet_map.values()) > 0
 
 def test_context():
     g = Git("https://github.com/adambaumeister/iron-skillet.git")
