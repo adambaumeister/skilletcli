@@ -8,6 +8,15 @@ matrix:
       after_success:
         - pyinstaller --onefile skilletcli.py
         - ls -l dist
+      deploy:
+        provider: releases
+        api_key: $api_token
+        file:
+          - "dist/skilletcli"
+        skip_cleanup: true
+        on:
+          tags: true
+
     - name: "Python 3.7.2 on macOS"
       os: osx
       osx_image: xcode10.2  # Python 3.7.2 running on macOS 10.14.3
@@ -16,7 +25,17 @@ matrix:
       before_install: python3 --version ; pip3 --version ; sw_vers
       after_success:
         - pyinstaller --onefile skilletcli.py --windowed
+        - mv dist/skilletcli dist/skilletcli-mac
         - ls -l dist
+      deploy:
+        provider: releases
+        api_key: $api_token
+        file:
+          - "dist/skilletcli-mac"
+        skip_cleanup: true
+        on:
+          tags: true
+
     - name: "Python 3.7.3 on Windows"
       os: windows           # Windows 10.0.17134 N/A Build 17134
       language: shell       # 'language: python' is an error on Travis CI Windows
@@ -28,6 +47,14 @@ matrix:
       after_success:
         - pyinstaller --onefile skilletcli.py
         - dir dist
+      deploy:
+        provider: releases
+        api_key: $api_token
+        file:
+          - "dist/skilletcli.exe"
+        skip_cleanup: true
+        on:
+          tags: true
 
 script: echo "no tests yet!"
 install:
