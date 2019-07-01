@@ -205,14 +205,16 @@ def main():
     parser.add_argument("--snippetstack", default="snippets", help="Snippet stack to use. ")
     parser.add_argument("--branch", help="Git repo branch to use.")
     parser.add_argument("--refresh", help="Refresh the cloned repository directory.", action='store_true')
+    parser.add_argument("--update", help="Update the cloned repository", action='store_true')
     parser.add_argument("snippetnames", help="List of snippets to push by name.", nargs="*")
     args = parser.parse_args()
 
+    colorama_init()
     if args.repotype == "git":
         repo_url = GIT_SKILLET_INDEX[args.repository]
         repo_name = args.repository
         g = Git(repo_url)
-        g.clone(repo_name, ow=args.refresh)
+        g.clone(repo_name, ow=args.refresh, update=args.update)
         if args.branch:
             g.branch(args.branch)
 
@@ -222,7 +224,7 @@ def main():
         exit(1)
 
     requests.packages.urllib3.disable_warnings()
-    colorama_init()
+
     if len(args.snippetnames) == 0:
         print("printing available {} snippets".format(repo_name))
         sc.print_all_skillets()

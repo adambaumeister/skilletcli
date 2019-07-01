@@ -3,6 +3,7 @@ import os, stat, shutil
 import re
 from .skillet import *
 import oyaml
+from colorama import Fore, Back, Style
 
 def on_rm_error( func, path, exc_info):
     # path contains the path of the file that couldn't be removed
@@ -32,24 +33,42 @@ class Git:
         self.name = ""
         self.path = ""
 
-    def clone(self, name, ow=False):
+    def clone(self, name, ow=False, update=False):
         """
         Clone a remote directory into the store.
         :param name: Name of repository
         :param ow: OverWrite, bool, if True will remove any existing directory in the location.
         :return:
         """
+        if not name:
+            raise ValueError("Missing or bad name passed to Clone command.")
+
+        self.update = update
         self.name = name
         path = self.store + os.sep + name
+        if path == os.getcwd():
+            raise ValueError("For whatever reason, path is set to the current working directory. Die so we don't break anything.")
+
         self.path = path
+
         print("Cloning into {}".format(path))
         if os.path.exists(path):
+            print("Directory already exists.")
             if ow:
-                print("Directory already exists; removing and replacing.")
-                shutil.rmtree(path,ignore_errors=False, onerror=on_rm_error)
+                prompt = "{}You have asked to refresh the repository. This will delete everything at {}. Are you sure? [Y/N] {}".format(Fore.RED, self.path, Style.RESET_ALL)
+                print(prompt, end="")
+                answer = input("")
+                if answer == "Y":
+                    shutil.rmtree(path,ignore_errors=False, onerror=on_rm_error)
+                else:
+                    print("{}Refresh specified but user did not agree to overwrite. Exiting.{}".format(Fore.RED, Style.RESET_ALL))
+                    exit(1)
             else:
-                print("Directory already exists and overwrite not specified.")
                 self.Repo = Repo(path)
+                if update:
+                    print("Updating repository...")
+                    self.Repo.remotes.origin.pull()
+
                 return path
 
         self.Repo = Repo.clone_from(self.repo_url, path)
@@ -59,6 +78,9 @@ class Git:
 
     def branch(self, branch_name):
         print("Checking out: "+branch_name)
+        if self.update:
+            print("Updating branch.")
+            self.Repo.remotes.origin.pull()
         self.Repo.git.checkout(branch_name)
 
     def build(self):

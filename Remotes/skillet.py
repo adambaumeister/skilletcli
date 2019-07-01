@@ -4,6 +4,7 @@ from passlib.hash import md5_crypt
 from passlib.hash import sha512_crypt
 from xml.etree import ElementTree
 
+
 class SkilletCollection:
     """
     Skillet collection Class

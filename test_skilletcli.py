@@ -16,7 +16,7 @@ def test_context():
     context = create_context("config_variables.yaml")
     sk = sc.get_skillet("panorama")
     sk.template(context)
-    snippets = sk.select_snippets("snippets", "device_mgt_config")
+    snippets = sk.select_snippets("snippets", ["device_mgt_config"])
     for snippet in snippets:
         print("{} {}".format(snippet.name, snippet.rendered_xmlstr))
 

@@ -1,4 +1,5 @@
 # SkilletCLI
+[![Build Status](https://travis-ci.org/adambaumeister/panfw-util.svg?branch=master)](https://travis-ci.org/adambaumeister/panfw-util)
 ## Overview
 This utility provides a command line interface to Palo Alto "skillets", 
 curated configuration templates designed to be imported into firewalls or Panorama.
