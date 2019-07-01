@@ -109,18 +109,10 @@ def create_context(config_var_file):
             variables = oyaml.safe_load(var_metadata.read())
 
     except IOError as ioe:
-        fail_message = """
-        Could not open the variables file.
-        
-        A variables file containing variable defintions is required to template the XML snippets.
-        
-        See the README.md file for more information.
-        
-        """
-        print(f'Could not open metadata file {config_var_file}')
-        print(ioe)
+        fail_message = """{}Note: {} not found. Default variables for snippet stack will be used.{}
+        """.format(Fore.YELLOW, config_var_file, Style.RESET_ALL)
         print(fail_message)
-        sys.exit()
+        return None
 
     # grab the metadata values and convert to key-based dictionary
     jinja_context = dict()

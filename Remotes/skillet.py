@@ -118,6 +118,12 @@ class Snippet:
         self.metadata = metadata
         
     def template(self, context):
+        if not context:
+            context = {}
+            variables = self.metadata['variables']
+            for snippet_var in variables:
+                context[snippet_var['name']] = snippet_var['default']
+
         e = Environment(loader=BaseLoader)
         e.filters["md5_hash"] = md5_hash
 

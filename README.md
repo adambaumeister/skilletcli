@@ -26,6 +26,9 @@ skilletcli is being run from.
 
 [click here to see a complete example, populated with default values](README.md)
 
+If this file is not specified or is missing/unavailable, defaults will be used. Defaults
+are sourced from the selected snippet metafile. 
+
 ## Usage
 ### Overview of skillet layout
 SkilletCLI returns a structure like the below:
