@@ -197,7 +197,7 @@ def check_resp(r, print_result=True):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Deploy a Skillet to a PANOS device from one of the possible repo types.")
+    parser = argparse.ArgumentParser(description="Deploy a Skillet to a PANOS device from one of the possible repo types.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--repository', default="iron-skillet", metavar="repo_name", help="Name of skillet to use ({})"
                         .format(", ".join(GIT_SKILLET_INDEX.keys())))
     parser.add_argument('--repotype', default="git", help="Type of skillet repo")

@@ -59,10 +59,12 @@ class Skillet:
 
     def select_snippets(self, stack_name, names):
         r = []
-        for snippet in self.snippet_stack[stack_name]:
-            if snippet.name in names:
-                # If it needs to be split up
-                r = r + self.split_snippet(snippet)
+        # Keep in the order the user specified at the commandline
+        for name in names:
+            for snippet in self.snippet_stack[stack_name]:
+                if snippet.name == name:
+                    # If it needs to be split up
+                    r = r + self.split_snippet(snippet)
 
         return r
 
