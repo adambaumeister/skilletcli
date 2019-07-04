@@ -24,10 +24,10 @@ class SkilletCollection:
     def get_skillet(self, skillet_name):
         return self.skillet_map[skillet_name]
 
-    def print_all_skillets(self):
+    def print_all_skillets(self, elements):
         for name, skillet in self.skillet_map.items():
             print(name)
-            skillet.print_all_snippets()
+            skillet.print_all_snippets(elements)
 
 
 class Skillet:
@@ -47,11 +47,13 @@ class Skillet:
     def get_snippets(self):
         return self.snippet_stack
 
-    def print_all_snippets(self):
+    def print_all_snippets(self, elements=True):
         for name, snippets in self.snippet_stack.items():
             print("  " + name)
             for snippet in snippets:
                 print("    " + snippet.name)
+                if elements:
+                    snippet.print_entries()
 
     def template(self, context):
         for name, snippets in self.snippet_stack.items():
@@ -162,7 +164,17 @@ class Snippet:
         xmlstr = ElementTree.tostring(elems)
         xmlstr = xmlstr.decode("utf-8")
         self.rendered_xmlstr = xmlstr
-        print(self.rendered_xmlstr)
+
+    def print_entries(self):
+        snippet_string = "<root>" + self.xmlstr + "</root>"
+        root = ElementTree.fromstring(snippet_string)
+        elems = root.findall("./entry")
+
+        if not elems:
+            return
+
+        for e in elems:
+            print("      " + e.attrib["name"])
 
 # define functions for custom jinja filters
 def md5_hash(txt):

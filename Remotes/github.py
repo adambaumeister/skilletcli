@@ -51,9 +51,7 @@ class Git:
 
         self.path = path
 
-        print("Cloning into {}".format(path))
         if os.path.exists(path):
-            print("Directory already exists.")
             if ow:
                 prompt = "{}You have asked to refresh the repository. This will delete everything at {}. Are you sure? [Y/N] {}".format(Fore.RED, self.path, Style.RESET_ALL)
                 print(prompt, end="")
@@ -71,6 +69,7 @@ class Git:
 
                 return path
         else:
+            print("Cloning into {}".format(path))
             self.Repo = Repo.clone_from(self.repo_url, path)
 
         self.path = path
