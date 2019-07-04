@@ -70,8 +70,8 @@ class Git:
                     self.Repo.remotes.origin.pull()
 
                 return path
-
-        self.Repo = Repo.clone_from(self.repo_url, path)
+        else:
+            self.Repo = Repo.clone_from(self.repo_url, path)
 
         self.path = path
         return path

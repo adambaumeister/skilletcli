@@ -61,11 +61,18 @@ class Skillet:
     def select_snippets(self, stack_name, names):
         r = []
         # Keep in the order the user specified at the commandline
-        for name in names:
+        for nameentry in names:
+            vals = nameentry.split("/")
+            name = vals[0]
+            entry_name = None
+            if len(vals) > 1:
+                entry_name = vals[1]
+
             for snippet in self.snippet_stack[stack_name]:
                 if snippet.name == name:
-                    # If it needs to be split up
-                    r = r + self.split_snippet(snippet)
+                    snippet.select_entry(entry_name)
+                    s = self.split_snippet(snippet)
+                    r = r + s
 
         return r
 
@@ -141,6 +148,21 @@ class Snippet:
         s.rendered_xmlstr = self.rendered_xmlstr
         s.rendered_xpath = self.rendered_xpath
         return s
+
+    def select_entry(self, name):
+        if not name:
+            return
+        snippet_string = "<root>" + self.rendered_xmlstr + "</root>"
+        root = ElementTree.fromstring(snippet_string)
+        elems = root.find("./entry[@name='{}']".format(name))
+
+        if not elems:
+            print("Entry with name {} not found in {}!".format(name, self.name))
+            exit(1)
+        xmlstr = ElementTree.tostring(elems)
+        xmlstr = xmlstr.decode("utf-8")
+        self.rendered_xmlstr = xmlstr
+        print(self.rendered_xmlstr)
 
 # define functions for custom jinja filters
 def md5_hash(txt):
