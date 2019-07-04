@@ -206,7 +206,7 @@ def main():
     parser.add_argument("--branch", help="Git repo branch to use.")
     parser.add_argument("--refresh", help="Refresh the cloned repository directory.", action='store_true')
     parser.add_argument("--update", help="Update the cloned repository", action='store_true')
-    parser.add_argument("--print_elements", help="Update the cloned repository", action='store_true')
+    parser.add_argument("--print_entries", help="Print not just the snippet names, but the entries within them.", action='store_true')
     parser.add_argument("snippetnames", help="List of snippets to push by name.", nargs="*")
     args = parser.parse_args()
 
@@ -228,7 +228,7 @@ def main():
 
     if len(args.snippetnames) == 0:
         print("printing available {} snippets".format(repo_name))
-        sc.print_all_skillets(elements=args.print_elements)
+        sc.print_all_skillets(elements=args.print_entries)
         sys.exit(0)
     else:
         addr = env_or_prompt("address", prompt_long="address:port (localhost:9443) of PANOS Device to configure: ")

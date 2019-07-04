@@ -24,7 +24,7 @@ class SkilletCollection:
     def get_skillet(self, skillet_name):
         return self.skillet_map[skillet_name]
 
-    def print_all_skillets(self, elements):
+    def print_all_skillets(self, elements=False):
         for name, skillet in self.skillet_map.items():
             print(name)
             skillet.print_all_snippets(elements)
