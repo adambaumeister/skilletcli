@@ -88,7 +88,7 @@ class Skillet:
         snippet_string = snippet.rendered_xmlstr
         length = len(snippet_string)
 
-        if length > 12000:
+        if length > 6000:
             # Wrap the xml in root elements so we can parse it
             snippet_string = "<root>" + snippet_string + "</root>"
             root = ElementTree.fromstring(snippet_string)

@@ -156,6 +156,10 @@ class Git:
 
         return snippets
 
+    def build_from_local(self, path):
+        self.path = path
+        self.Repo = "local"
+        return self.build()
 
 def check_git_exists():
     return shutil.which("git")
