@@ -85,6 +85,9 @@ variables:
   - name: SYSLOG_SERVER
     description: syslog server ip address
     value: 192.0.2.2
+  - name: INCLUDE_PAN_EDL
+    description: include the predefined Palo Alto Networks external lists
+    value: 'yes'
 
   - name: GP_ID
     value: gp_userid
