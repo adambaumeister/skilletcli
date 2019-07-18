@@ -116,3 +116,22 @@ variables:
 
   - name: GP_EXTERNAL_GW_INTERFACE
     value: loopback.100
+
+  - name: IP_POOL
+    value: 10.10.200.0/24
+
+  - name: CLIENT_PRIMARY_DNS
+    value: 8.8.8.8
+
+  - name: CLIENT_SECONDARY_DNS
+    value: 8.8.4.4
+
+  - name: CLIENT_DNS_SUFFIX
+    value:
+      - esxlab.com
+
+  - name: TUNNEL_INTERFACE
+    value: tunnel.50
+
+  - name: GP_EXTERNAL_GW_DNS
+    value: egw-test.org.com
