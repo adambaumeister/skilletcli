@@ -3,6 +3,7 @@ import sys
 import oyaml
 import requests
 from xml.etree import ElementTree
+from xml.etree.ElementTree import ParseError
 from urllib3.exceptions import ProtocolError
 from colorama import init as colorama_init
 import re
@@ -77,7 +78,8 @@ class Panos:
         params["key"] = self.key
         self.debug_log("{} : {}".format(url, params))
         try:
-            r = requests.get(url, params=params, verify=False)
+            # = requests.get(url, params=params, verify=False)
+            r = requests.post(url, data=params, verify=False)
         except ProtocolError:
             print("Failed to send a rqequest.")
             exit(1)
@@ -183,7 +185,13 @@ def env_or_prompt(prompt, prompt_long=None, secret=False):
     return e
 
 def check_resp(r, print_result=True):
-    root = ElementTree.fromstring(r.content)
+    try:
+        root = ElementTree.fromstring(r.content)
+    except ParseError as e:
+        print(r.content)
+        print("{}".format(e))
+        exit(1)
+
     status = root.attrib["status"]
     if status == "success":
         if print_result:
@@ -201,6 +209,7 @@ def main():
     parser.add_argument('--repository', default="iron-skillet", metavar="repo_name", help="Name of skillet to use ({})"
                         .format(", ".join(GIT_SKILLET_INDEX.keys())))
     parser.add_argument('--repotype', default="git", help="Type of skillet repo")
+    parser.add_argument('--repopath', help="Path to repository if using local repo type")
     parser.add_argument("--config", default="config_variables.yaml", help="Path to YAML variable configuration file.")
     parser.add_argument("--snippetstack", default="snippets", help="Snippet stack to use. ")
     parser.add_argument("--branch", help="Git repo branch to use.")
@@ -212,7 +221,15 @@ def main():
 
     colorama_init()
     if args.repotype == "git":
-        repo_url = GIT_SKILLET_INDEX[args.repository]
+        if args.repository not in GIT_SKILLET_INDEX:
+            if not args.repopath:
+                print("Non-registered skillet. --repopath [git url] is required.")
+                exit(1)
+
+            repo_url = args.repopath
+        else:
+            repo_url = GIT_SKILLET_INDEX[args.repository]
+
         repo_name = args.repository
         g = Git(repo_url)
         g.clone(repo_name, ow=args.refresh, update=args.update)
@@ -220,6 +237,10 @@ def main():
             g.branch(args.branch)
 
         sc = g.build()
+    elif args.repotype == "local":
+        repo_name = args.repopath
+        g = Git("")
+        sc = g.build_from_local(args.repopath)
     else:
         print("No other skillet types currently supported.")
         exit(1)

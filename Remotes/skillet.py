@@ -63,6 +63,9 @@ class Skillet:
     def select_snippets(self, stack_name, names):
         r = []
         # Keep in the order the user specified at the commandline
+        if "all" in names:
+            return self.snippet_stack[stack_name]
+
         for nameentry in names:
             vals = nameentry.split("/")
             name = vals[0]
@@ -88,7 +91,7 @@ class Skillet:
         snippet_string = snippet.rendered_xmlstr
         length = len(snippet_string)
 
-        if length > 12000:
+        if length > 6000:
             # Wrap the xml in root elements so we can parse it
             snippet_string = "<root>" + snippet_string + "</root>"
             root = ElementTree.fromstring(snippet_string)

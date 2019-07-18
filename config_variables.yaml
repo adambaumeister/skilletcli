@@ -85,8 +85,62 @@ variables:
   - name: SYSLOG_SERVER
     description: syslog server ip address
     value: 192.0.2.2
-# option built into the templates to ignore the panw published external dynamic lists security rules
-# should ONLY be excluded based on licensing limitations outside of best practices
   - name: INCLUDE_PAN_EDL
     description: include the predefined Palo Alto Networks external lists
     value: 'yes'
+
+  - name: GP_ID
+    value: gp_userid
+
+  - name: LDAP_SERVER
+    value: 192.168.1.141
+
+  - name: LDAP_BINDDN
+    value: userid@esxlab.com
+
+  - name: LDAP_BINDPASSWORD
+    value: spaghett
+
+  - name: LDAP_BASEDN
+    value: DC=esxlab,DC=com
+
+  - name: ALLOWED_GROUPS
+    value:
+      - esxlab\administrators
+
+  - name: GP_PORTAL_IP
+    value: 10.10.255.1
+
+  - name: GP_PORTAL_INT
+    value: loopback.10
+
+  - name: GP_EXTERNAL_GW_ADDR
+    value: 10.10.255.2
+
+  - name: GP_EXTERNAL_GW_INTERFACE
+    value: loopback.20
+
+  - name: IP_POOL
+    value: 10.10.200.0/24
+
+  - name: CLIENT_PRIMARY_DNS
+    value: 8.8.8.8
+
+  - name: CLIENT_SECONDARY_DNS
+    value: 8.8.4.4
+
+  - name: CLIENT_DNS_SUFFIX
+    value:
+      - esxlab.com
+
+  - name: TUNNEL_INTERFACE
+    value: tunnel.50
+
+  - name: GP_EXTERNAL_GW_DNS
+    value: egw-test.org.com
+
+  - name: PORTAL_SSL_PROFILE
+    value: combo-ssl
+
+  - name: EGW_SSL_PROFILE
+    value: combo-ssl
