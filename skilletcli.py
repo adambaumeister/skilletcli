@@ -225,7 +225,11 @@ def main():
             if not args.repopath:
                 print("Non-registered skillet. --repopath [git url] is required.")
                 exit(1)
-        repo_url = GIT_SKILLET_INDEX[args.repository]
+
+            repo_url = args.repopath
+        else:
+            repo_url = GIT_SKILLET_INDEX[args.repository]
+
         repo_name = args.repository
         g = Git(repo_url)
         g.clone(repo_name, ow=args.refresh, update=args.update)
