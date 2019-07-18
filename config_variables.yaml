@@ -109,13 +109,13 @@ variables:
     value: 10.10.255.1
 
   - name: GP_PORTAL_INT
-    value: loopback.99
+    value: loopback.10
 
   - name: GP_EXTERNAL_GW_ADDR
     value: 10.10.255.2
 
   - name: GP_EXTERNAL_GW_INTERFACE
-    value: loopback.100
+    value: loopback.20
 
   - name: IP_POOL
     value: 10.10.200.0/24
@@ -135,3 +135,9 @@ variables:
 
   - name: GP_EXTERNAL_GW_DNS
     value: egw-test.org.com
+
+  - name: PORTAL_SSL_PROFILE
+    value: combo-ssl
+
+  - name: EGW_SSL_PROFILE
+    value: combo-ssl
