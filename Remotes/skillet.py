@@ -63,6 +63,9 @@ class Skillet:
     def select_snippets(self, stack_name, names):
         r = []
         # Keep in the order the user specified at the commandline
+        if "all" in names:
+            return self.snippet_stack[stack_name]
+
         for nameentry in names:
             vals = nameentry.split("/")
             name = vals[0]

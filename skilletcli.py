@@ -44,7 +44,7 @@ class Panos:
         self.user = user
         self.pw = pw
         self.key = ''
-        self.debug = True
+        self.debug = False
         self.connect()
 
 
