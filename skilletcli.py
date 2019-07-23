@@ -2,6 +2,7 @@ import os
 import sys
 import oyaml
 import requests
+from yaml.scanner import ScannerError
 from xml.etree import ElementTree
 from xml.etree.ElementTree import ParseError
 from urllib3.exceptions import ProtocolError
@@ -11,6 +12,7 @@ from colorama import Fore, Back, Style
 import getpass
 import argparse
 from Remotes import Git
+import json
 
 """
 Create-and-push
@@ -107,14 +109,27 @@ class Panos:
 def create_context(config_var_file):
     # read the metafile to get variables and values
     try:
-        with open(config_var_file, 'r') as var_metadata:
-            variables = oyaml.safe_load(var_metadata.read())
-
+        open(config_var_file, 'r')
     except IOError as ioe:
         fail_message = """{}Note: {} not found. Default variables for snippet stack will be used.{}
         """.format(Fore.YELLOW, config_var_file, Style.RESET_ALL)
         print(fail_message)
         return None
+
+    try_json = False
+    with open(config_var_file, 'r') as f:
+        try:
+            variables = oyaml.safe_load(f.read())
+        except ScannerError:
+            try_json = True
+
+    if try_json:
+        with open(config_var_file, 'r') as f:
+            try:
+                variables = json.load(f)
+            except json.decoder.JSONDecodeError:
+                print("Configuration file could not be decoded as YAML or JSON!")
+                exit(1)
 
     # grab the metadata values and convert to key-based dictionary
     jinja_context = dict()
