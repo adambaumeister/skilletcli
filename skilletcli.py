@@ -262,7 +262,7 @@ def main():
         if t != "Panorama":
             t = "panos"
 
-        skillet = sc.get_skillet(t)
+        skillet = sc.get_skillet(t.lower())
         context = create_context(args.config)
         skillet.template(context)
         for snippet in skillet.select_snippets(args.snippetstack, args.snippetnames):
