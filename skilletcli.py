@@ -145,8 +145,8 @@ def sanitize_element(element):
     :param element: element str
     :return: sanitized element str
     """
-    element = re.sub("\n\s+", "", element)
-    element = re.sub("\n", "", element)
+    element = re.sub(r"\n\s+", "", element)
+    element = re.sub(r"\n", "", element)
     return element
 
 def set_at_path(panos, xpath, elementvalue):
@@ -267,7 +267,7 @@ def main():
         sc.print_all_skillets(elements=args.print_entries)
         sys.exit(0)
     else:
-        addr = env_or_prompt("address", prompt_long="address:port (localhost:9443) of PANOS Device to configure: ")
+        addr = env_or_prompt("address", prompt_long="address or address:port of PANOS Device to configure: ")
         user = env_or_prompt("username")
         pw = env_or_prompt("password", secret=True)
         fw = Panos(addr, user, pw)
@@ -277,7 +277,7 @@ def main():
         if t != "Panorama":
             t = "panos"
 
-        skillet = sc.get_skillet(t)
+        skillet = sc.get_skillet(t.lower())
         context = create_context(args.config)
         skillet.template(context)
         for snippet in skillet.select_snippets(args.snippetstack, args.snippetnames):
