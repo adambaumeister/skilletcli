@@ -1,6 +1,8 @@
 from Remotes import Git
-from skilletcli import create_context
+from skilletcli import create_context, env_or_prompt
 from pytest import fixture
+from skilletcli import Panos
+import os
 
 @fixture
 def g():
@@ -33,3 +35,16 @@ def test_select_entry(g):
     snippets = sk.select_snippets("snippets", ["tag/Outbound"])
 
     assert len(snippets) == 1
+
+def test_type_switch():
+    p = Panos("", "", "", connect=False)
+    r = p.get_type_from_info("Panorama")
+    assert r == "panorama"
+    r = p.get_type_from_info("M-200")
+    assert r == "panorama"
+    r = p.get_type_from_info("PA-VM")
+    assert r == "panos"
+    print(r)
+
+if __name__ == '__main__':
+    test_type_switch()

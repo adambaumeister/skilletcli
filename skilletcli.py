@@ -35,19 +35,26 @@ class Panos:
     """
     PANOS Device. Could be a firewall or PANORAMA.
     """
-    def __init__(self, addr, user, pw):
+    def __init__(self, addr, user, pw, connect=True):
         """
         Initialize a new panos object
         :param addr: NAME:PORT combination (ex. l72.16.0.1:443)
         :param user: username
         :param pw: password
+        :param connect (true): Specify whether to connect at init or not.
         """
+        self.type_switch = {
+            r'panorama': "panorama",
+            r'm-': "panorama",
+        }
+
         self.url = "https://{}/api".format(addr)
         self.user = user
         self.pw = pw
         self.key = ''
         self.debug = False
-        self.connect()
+        if connect:
+            self.connect()
 
 
     def connect(self):
@@ -90,17 +97,30 @@ class Panos:
     def get_type(self):
         """
         Get the type of PANOS device using show system info
+
         :param panos: PANOS device object
         :return:
         """
         params = {
             "type": "op",
-            "cmd": "<show><system><info></info></system></show>"
+            "cmd": "  "
         }
         r = self.send(params)
         root = ElementTree.fromstring(r.content)
         elem = root.findall("./result/system/model")
-        return elem[0].text
+        t = elem[0].text
+        for regex, result in self.type_switch.items():
+            if re.search(regex, t.lower()):
+                return result
+
+        return "panos"
+
+    def get_type_from_info(self, t):
+        for regex, result in self.type_switch.items():
+            if re.search(regex, t.lower()):
+                return result
+
+        return "panos"
 
     def debug_log(self, l):
         if self.debug:
