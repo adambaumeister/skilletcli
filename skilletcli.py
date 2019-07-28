@@ -35,19 +35,31 @@ class Panos:
     """
     PANOS Device. Could be a firewall or PANORAMA.
     """
-    def __init__(self, addr, user, pw):
+    def __init__(self, addr, user, pw, connect=True, debug=False):
         """
         Initialize a new panos object
         :param addr: NAME:PORT combination (ex. l72.16.0.1:443)
         :param user: username
         :param pw: password
+        :param connect (true): Specify whether to connect at init or not.
         """
+        self.type_switch = {
+            r'panorama': "panorama",
+            r'm-': "panorama",
+        }
+
         self.url = "https://{}/api".format(addr)
         self.user = user
         self.pw = pw
         self.key = ''
-        self.debug = False
-        self.connect()
+        if debug == True:
+            self.log_level = 1
+        else:
+            self.log_level = 0
+
+        self.log("Logging level is {}".format(self.log_level))
+        if connect:
+            self.connect()
 
 
     def connect(self):
@@ -60,8 +72,9 @@ class Panos:
             "user": self.user,
             "password": self.pw,
         }
+        self.log("Connecting to {}".format(self.url))
         r = self.send(params)
-        if not check_resp(r, print_result=False):
+        if not self.check_resp(r):
             print("Error on login received from PANOS: {}".format(r.text))
             exit(1)
 
@@ -78,7 +91,7 @@ class Panos:
         """
         url = self.url
         params["key"] = self.key
-        self.debug_log("{} : {}".format(url, params))
+        self.log("{} : {}".format(url, params), level=2)
         try:
             # = requests.get(url, params=params, verify=False)
             r = requests.post(url, data=params, verify=False)
@@ -90,6 +103,7 @@ class Panos:
     def get_type(self):
         """
         Get the type of PANOS device using show system info
+
         :param panos: PANOS device object
         :return:
         """
@@ -97,14 +111,44 @@ class Panos:
             "type": "op",
             "cmd": "<show><system><info></info></system></show>"
         }
+        self.log("Sending: {}".format(params))
+
         r = self.send(params)
+        if not self.check_resp(r):
+            print("Error on login received from PANOS: {}".format(r.text))
+            exit(1)
+
         root = ElementTree.fromstring(r.content)
         elem = root.findall("./result/system/model")
-        return elem[0].text
+        t = elem[0].text
+        type_result = self.get_type_from_info(t)
+        self.log("Show sys model:{} Inferred type: {}".format(t, type_result))
+        return type_result
 
-    def debug_log(self, l):
-        if self.debug:
+    def get_type_from_info(self, t):
+        for regex, result in self.type_switch.items():
+            if re.search(regex, t.lower()):
+                return result
+
+        return "panos"
+
+    def log(self, l, level=1):
+        if level <= self.log_level:
             print(l)
+
+    def check_resp(self, r):
+        try:
+            root = ElementTree.fromstring(r.content)
+        except ParseError as e:
+            print(r.content)
+            print("{}".format(e))
+            exit(1)
+
+        status = root.attrib["status"]
+        if status == "success":
+            return True
+        else:
+            return False
 
 def create_context(config_var_file):
     # read the metafile to get variables and values
@@ -217,20 +261,28 @@ def check_resp(r, print_result=True):
             print("{}{} : Failed.{}".format(Fore.RED, r.text, Style.RESET_ALL))
         return False
 
-
-
 def main():
+    # Setup argparse
     parser = argparse.ArgumentParser(description="Deploy a Skillet to a PANOS device from one of the possible repo types.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--repository', default="iron-skillet", metavar="repo_name", help="Name of skillet to use ({})"
+    config_arg_group = parser.add_argument_group("Configuration options")
+    repo_arg_group = parser.add_argument_group("Repository options")
+    selection_options = parser.add_argument_group("Selection options")
+    script_options = parser.add_argument_group("Script options")
+
+    repo_arg_group.add_argument('--repository', default="iron-skillet", metavar="repo_name", help="Name of skillet to use"
                         .format(", ".join(GIT_SKILLET_INDEX.keys())))
-    parser.add_argument('--repotype', default="git", help="Type of skillet repo")
-    parser.add_argument('--repopath', help="Path to repository if using local repo type")
-    parser.add_argument("--config", default="config_variables.yaml", help="Path to YAML variable configuration file.")
-    parser.add_argument("--snippetstack", default="snippets", help="Snippet stack to use. ")
-    parser.add_argument("--branch", help="Git repo branch to use.")
-    parser.add_argument("--refresh", help="Refresh the cloned repository directory.", action='store_true')
-    parser.add_argument("--update", help="Update the cloned repository", action='store_true')
-    parser.add_argument("--print_entries", help="Print not just the snippet names, but the entries within them.", action='store_true')
+    repo_arg_group.add_argument('--repotype', default="git", help="Type of skillet repo")
+    repo_arg_group.add_argument("--branch", help="Git repo branch to use.")
+    repo_arg_group.add_argument('--repopath', help="Path to repository if using local repo type")
+    repo_arg_group.add_argument("--refresh", help="Refresh the cloned repository directory.", action='store_true')
+    repo_arg_group.add_argument("--update", help="Update the cloned repository", action='store_true')
+
+    config_arg_group.add_argument("--config", default="config_variables.yaml", help="Path to YAML variable configuration file.")
+    script_options.add_argument("--debug", default="False", help="Enable debugging.", action='store_true')
+
+    selection_options.add_argument("--snippetstack", default="snippets", help="Snippet stack to use. ")
+    selection_options.add_argument("--print_entries", help="Print not just the snippet names, but the entries within them.", action='store_true')
+
     parser.add_argument("snippetnames", help="List of snippets to push by name.", nargs="*")
     args = parser.parse_args()
 
@@ -270,16 +322,16 @@ def main():
         addr = env_or_prompt("address", prompt_long="address or address:port of PANOS Device to configure: ")
         user = env_or_prompt("username")
         pw = env_or_prompt("password", secret=True)
-        fw = Panos(addr, user, pw)
+        fw = Panos(addr, user, pw, debug=args.debug)
         t = fw.get_type()
-
-        # This is unneeded i think.
-        if t != "Panorama":
-            t = "panos"
 
         skillet = sc.get_skillet(t.lower())
         context = create_context(args.config)
         skillet.template(context)
+        snippets = skillet.select_snippets(args.snippetstack, args.snippetnames)
+        if len(snippets) == 0:
+            print("{}Snippets {} not found for device type {}.{}".format(Fore.RED, ",".join(args.snippetnames), t, Style.RESET_ALL))
+
         for snippet in skillet.select_snippets(args.snippetstack, args.snippetnames):
             print("Doing {} at {}...".format(snippet.name, snippet.rendered_xpath), end="")
             r = set_at_path(fw, snippet.rendered_xpath, snippet.rendered_xmlstr)
