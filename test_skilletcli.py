@@ -44,7 +44,6 @@ def test_type_switch():
     assert r == "panorama"
     r = p.get_type_from_info("PA-VM")
     assert r == "panos"
-    print(r)
 
 if __name__ == '__main__':
     test_type_switch()

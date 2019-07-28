@@ -57,6 +57,7 @@ class Panos:
         else:
             self.log_level = 0
 
+        self.log("Logging level is {}".format(self.log_level))
         if connect:
             self.connect()
 
@@ -71,8 +72,9 @@ class Panos:
             "user": self.user,
             "password": self.pw,
         }
+        self.log("Connecting to {}".format(self.url))
         r = self.send(params)
-        if not check_resp(r, print_result=False):
+        if not self.check_resp(r):
             print("Error on login received from PANOS: {}".format(r.text))
             exit(1)
 
@@ -109,12 +111,18 @@ class Panos:
             "type": "op",
             "cmd": "<show><system><info></info></system></show>"
         }
+        self.log("Sending: {}".format(params))
+
         r = self.send(params)
+        if not self.check_resp(r):
+            print("Error on login received from PANOS: {}".format(r.text))
+            exit(1)
+
         root = ElementTree.fromstring(r.content)
         elem = root.findall("./result/system/model")
         t = elem[0].text
         type_result = self.get_type_from_info(t)
-        self.log("{} {}".format(t, type_result))
+        self.log("Show sys model:{} Inferred type: {}".format(t, type_result))
         return type_result
 
     def get_type_from_info(self, t):
@@ -127,6 +135,20 @@ class Panos:
     def log(self, l, level=1):
         if level <= self.log_level:
             print(l)
+
+    def check_resp(self, r):
+        try:
+            root = ElementTree.fromstring(r.content)
+        except ParseError as e:
+            print(r.content)
+            print("{}".format(e))
+            exit(1)
+
+        status = root.attrib["status"]
+        if status == "success":
+            return True
+        else:
+            return False
 
 def create_context(config_var_file):
     # read the metafile to get variables and values
@@ -238,8 +260,6 @@ def check_resp(r, print_result=True):
         if print_result:
             print("{}{} : Failed.{}".format(Fore.RED, r.text, Style.RESET_ALL))
         return False
-
-
 
 def main():
     # Setup argparse
