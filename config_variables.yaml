@@ -89,6 +89,9 @@ variables:
     description: include the predefined Palo Alto Networks external lists
     value: 'yes'
 
+  - name: API_KEY_LIFETIME
+    value: 525600
+
   - name: GP_ID
     value: gp_userid
 
