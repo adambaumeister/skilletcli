@@ -272,7 +272,7 @@ def main():
     repo_arg_group.add_argument('--repository', default="iron-skillet", metavar="repo_name", help="Name of skillet to use"
                         .format(", ".join(GIT_SKILLET_INDEX.keys())))
     repo_arg_group.add_argument('--repotype', default="git", help="Type of skillet repo")
-    repo_arg_group.add_argument("--branch", help="Git repo branch to use.")
+    repo_arg_group.add_argument("--branch", help="Git repo branch to use. Use 'list' to view available branches.")
     repo_arg_group.add_argument('--repopath', help="Path to repository if using local repo type")
     repo_arg_group.add_argument("--refresh", help="Refresh the cloned repository directory.", action='store_true')
     repo_arg_group.add_argument("--update", help="Update the cloned repository", action='store_true')
@@ -301,6 +301,9 @@ def main():
         g = Git(repo_url)
         g.clone(repo_name, ow=args.refresh, update=args.update)
         if args.branch:
+            if args.branch == "list":
+                print("\n".join(g.list_branches()))
+                exit()
             g.branch(args.branch)
 
         sc = g.build()
