@@ -62,14 +62,26 @@ def test_type_switch():
     r = p.get_type_from_info("PA-VM")
     assert r == "panos"
 
+# Below are functions for testing individual skillets.
+# This provides an interface through pytest to validate that a skillet works.
 def test_iron_skillet(g):
     """
     Test the "iron-skillet" snippet
     """
     sc = g.build()
-    push_test(sc)
+    test_stack = 'snippets'
+    test_snippets = ['all']
+    push_test(sc, test_stack, test_snippets)
 
-def push_test(sc):
+def test_gpskillet():
+    g = Git("https://github.com/adambaumeister/gpskillet.git")
+    g.clone("gpskillet")
+    sc = g.build()
+    test_stack = 'snippets'
+    test_snippets = ['all']
+    push_test(sc, test_stack, test_snippets)
+
+def push_test(sc, test_stack, test_snippets):
     """
     Given a skillet collection, pushes all snippets and uses Assert to validate they work.
     :param sc: SkilletCollection
@@ -80,8 +92,6 @@ def push_test(sc):
         pytest.skip("No environment to run device tests against.")
         return
 
-    test_stacks = ['snippets']
-    test_snippets = ['all']
     addr = os.getenv("SKCLI_ADDRESS")
     user = os.getenv("SKCLI_USERNAME")
     pw = os.getenv("SKCLI_PASSWORD")
@@ -91,11 +101,11 @@ def push_test(sc):
 
     skillet = sc.get_skillet(t.lower())
     skillet.template(None)
-    snippets = skillet.select_snippets(test_stacks[0], test_snippets)
+    snippets = skillet.select_snippets(test_stack, test_snippets)
     assert len(snippets) > 0
 
     success_count = 0
-    for snippet in skillet.select_snippets(test_stacks[0], test_snippets):
+    for snippet in skillet.select_snippets(test_stack, test_snippets):
         print("Doing {} at {}...".format(snippet.name, snippet.rendered_xpath), end="")
         r = set_at_path(fw, snippet.rendered_xpath, snippet.rendered_xmlstr)
         result = check_resp(r)

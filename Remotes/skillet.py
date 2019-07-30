@@ -22,6 +22,8 @@ class SkilletCollection:
         return s
 
     def get_skillet(self, skillet_name):
+        if skillet_name not in self.skillet_map:
+            raise ValueError("This skillet does not support {}".format(skillet_name))
         return self.skillet_map[skillet_name]
 
     def print_all_skillets(self, elements=False):
