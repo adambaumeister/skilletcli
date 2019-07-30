@@ -76,11 +76,29 @@ class Git:
         return path
 
     def branch(self, branch_name):
+        """
+        Checkout the specified branch.
+        :param branch_name: Branch to checkout.
+        :return: None
+        """
         print("Checking out: "+branch_name)
         if self.update:
             print("Updating branch.")
             self.Repo.remotes.origin.pull()
         self.Repo.git.checkout(branch_name)
+
+    def list_branches(self):
+        """
+        Get a list of remote branches.
+        :return: []branch_names: List of branch names (minus remote)
+        """
+        branches = self.Repo.git.branch('-r').split('\n')
+        branch_names = []
+        for branch in branches:
+            s = branch.split("/")
+            branch_names.append(s[len(s)-1])
+        return branch_names
+
 
     def build(self):
         """

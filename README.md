@@ -69,3 +69,47 @@ The variables are:
 * SKCLI_USERNAME
 * SKCLI_PASSWORD
 * SKCLI_ADDRESS
+
+## Developing SkilletCLI
+Contributing to SkilletCLI requires Python 3.6+ installed on your machine.
+
+After it is installed, it's recommended to create a virtual environment so the code is standalone.
+
+```bash
+python3 -m venv venv
+# Windows
+venv/scripts/activate
+# *nix
+source venv/scripts/activate
+```
+
+Clone the code and install the module requirements.
+
+```bash
+git clone https://github.com/adambaumeister/skilletcli.git
+cd skilletcli
+pip install -r requirements.txt
+```
+
+You are now ready to make your changes!
+
+### Testing
+Testing of skilletcli is broken up into two logical processes
+1. Unit testing, or the testing of standalone functions
+2. Integration testing, or the testing of functions against real PANOS devices
+
+All testing is initatiated using *pytest*. 
+```bash
+pytest
+```
+
+By default, only unit tests will be run. To run integration testing, you must specify the standard
+SKCLI environment variables (address, username, password) of the device to test against
+as well as an additional env var: *SKCLI_DEVICE_TEST*. 
+After setting up the environment, simply run *pytest* as normal.
+
+Pytest is run automatically as part of CI using TravisCI whenever changes are detected to Master. CI only runs unit tests.
+
+### Packaging
+All packaging is done using pyinstaller, managed by Travis. Packaging occurs on the publish of a release
+(tag) on the master branch.  
