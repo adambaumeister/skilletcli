@@ -12,8 +12,9 @@ class SkilletCollection:
     Store of skillets. A skillet is a combination of XML snippets and metadata
     associated with a pan device type and software verison.
     """
-    def __init__(self):
+    def __init__(self, name):
         self.skillet_map = {}
+        self.name = name
         return
 
     def new_skillet(self, skillet_name, skillet_type, supported_versions):
@@ -31,6 +32,8 @@ class SkilletCollection:
             print(name)
             skillet.print_all_snippets(elements)
 
+    def get_skillet_names(self):
+        return self.skillet_map.keys()
 
 class Skillet:
     def __init__(self, name, skillet_type, supported_versions):
@@ -82,6 +85,9 @@ class Skillet:
                     r = r + s
 
         return r
+
+    def get_all_stacks(self):
+        return self.snippet_stack.keys()
 
     def split_snippet(self, snippet):
         """
