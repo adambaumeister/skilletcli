@@ -3,7 +3,11 @@ import os
 
 GCLOUD_API_VAR="GOOGLE_APPLICATION_CREDENTIALS"
 GCLOUD_PROJECT="skillet-deploy"
-
+META_COLLECTION="db"
+META_DOCUMENT="meta"
+META_SCHEMA={
+    "collections": []
+}
 class Firestore():
     """
     Methods for interacting with gcloud-firestore for the storage and retrieval of PAN skillets.
@@ -13,8 +17,8 @@ class Firestore():
         self.debug = debug
         # make sure we have valid gcloud creds
         creds = self.check_creds()
-        if not creds:
-            raise ValueError("Missing required API credentials file".format(GCLOUD_API_VAR))
+        #if not creds:
+        #    raise ValueError("Missing required API credentials file".format(GCLOUD_API_VAR))
 
         self.db = self.connect()
 
@@ -39,6 +43,10 @@ class Firestore():
         if self.debug:
             print(msg)
 
+    def GetCollections(self):
+        meta = self.get_meta()
+        return meta.Get_Collections()
+
     def AddSkilletCollection(self, sc):
         """
         Takes a SkilletCollection object and uploads all skillets to Firestore.
@@ -54,8 +62,23 @@ class Firestore():
                 snippets = sk.select_snippets(stack, ["all"])
                 self.add_snippets(snippets, sc.name, stack, skillet_type)
 
+    def get_meta(self):
+        """
+        Retrieve the metadata of the skillet-deploy firestore
+        :return: Data
+        """
+        doc_ref = self.db.collection(META_COLLECTION).document(META_DOCUMENT)
+        meta = Meta(doc_ref)
+        return meta
+
+
     def add_snippets(self, snippets, collection_name, stack_name, skillet_type):
         print("Adding {} snippets to Firestore/{}.".format(len(snippets), collection_name))
+        # Add the skillet as a collection to the Firestore DB
+        # This requires updating the DB "meta" schema document.
+        meta = self.get_meta()
+        meta.Add_Collection(collection_name)
+
         b = self.db.batch()
         for snippet in snippets:
             d = {
@@ -64,9 +87,34 @@ class Firestore():
                 "xml": snippet.xmlstr,
                 "type": skillet_type,
                 "stack": stack_name,
+                "skillet": collection_name
             }
             self.log(d)
             doc_ref = self.db.collection(collection_name).document(snippet.name)
             b.set(doc_ref, d)
-        
+
         b.commit()
+
+class Meta:
+    """
+    Meta class
+    Handles operations related to the "meta" document, which contains schema information for the firestore db.
+    """
+    def __init__(self, ref):
+        meta_doc = ref.get().to_dict()
+
+        if not meta_doc:
+            meta_doc = META_SCHEMA
+        self.doc = meta_doc
+
+        self.ref = ref
+
+    def Add_Collection(self, collection):
+        if collection in self.doc['collections']:
+            return
+        self.doc['collections'].append(collection)
+        self.ref.set(self.doc)
+
+    def Get_Collections(self):
+        return self.doc['collections']
+

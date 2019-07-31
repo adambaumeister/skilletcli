@@ -1,5 +1,6 @@
 import argparse
-from Remotes import Firestore, Git
+from Remotes import Git
+from web.db import Firestore
 
 def main():
     """
