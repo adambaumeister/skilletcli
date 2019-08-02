@@ -62,6 +62,38 @@ class Firestore():
                 snippets = sk.select_snippets(stack, ["all"])
                 self.add_snippets(snippets, sc.name, stack, skillet_type)
 
+    def GetDocumentRefs(self, collection_name, filters={}):
+        ref = self.db.collection(collection_name)
+        docs = ref.stream()
+        r = []
+        for d in docs:
+            doc_dict = d.to_dict()
+            print(doc_dict)
+            if self.dict_comparison(doc_dict, filters):
+                r.append(d.reference)
+        return r
+
+    def GetDocumentSnaps(self, collection_name, filters={}):
+        ref = self.db.collection(collection_name)
+        docs = ref.stream()
+        r = []
+        for d in docs:
+            doc_dict = d.to_dict()
+            if self.dict_comparison(doc_dict, filters):
+                r.append(d)
+        return r
+
+    def dict_comparison(self, d, filters):
+        match = True
+        for k, v in filters.items():
+            if k in d:
+                if v != d[k]:
+                    match = False
+            else:
+                match = False
+
+        return match
+
     def get_meta(self):
         """
         Retrieve the metadata of the skillet-deploy firestore
@@ -80,6 +112,18 @@ class Firestore():
         meta.Add_Collection(collection_name)
 
         b = self.db.batch()
+        filters ={
+            "stack": stack_name,
+            "type": skillet_type,
+        }
+        # Delete all the matching records first.
+        doc_refs = self.GetDocumentRefs(collection_name, filters)
+        print("Deleting {} existing docs.".format(len(doc_refs)))
+        for ref in doc_refs:
+            b.delete(ref)
+        b.commit()
+
+        b = self.db.batch()
         for snippet in snippets:
             d = {
                 "name": snippet.name,
@@ -90,7 +134,7 @@ class Firestore():
                 "skillet": collection_name
             }
             self.log(d)
-            doc_ref = self.db.collection(collection_name).document(snippet.name)
+            doc_ref = self.db.collection(collection_name).document()
             b.set(doc_ref, d)
 
         b.commit()
