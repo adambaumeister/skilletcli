@@ -13,6 +13,7 @@ def main():
     repo_arg_group = parser.add_argument_group("Repository options")
 
     script_options.add_argument("--debug", default="False", help="Enable debugging.", action='store_true')
+    script_options.add_argument("--rebuild_meta", default="False", help="Reinitalize the document schema", action='store_true')
     repo_arg_group.add_argument('--repository', default="iron-skillet", metavar="repo_name", help="Name of skillet to use")
     repo_arg_group.add_argument('--repotype', default="git", help="Type of skillet repo")
     repo_arg_group.add_argument("--branch", help="Git repo branch to use. Use 'list' to view available branches.")
@@ -34,6 +35,8 @@ def main():
         g.branch(args.branch)
 
     sc = g.build()
+    if args.rebuild_meta:
+        firestore.rebuild()
     firestore.AddSkilletCollection(sc)
 
 if __name__ == '__main__':

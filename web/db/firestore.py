@@ -103,6 +103,9 @@ class Firestore():
         meta = Meta(doc_ref)
         return meta
 
+    def rebuild(self):
+        m = self.get_meta()
+        m.delete()
 
     def add_snippets(self, snippets, collection_name, stack_name, skillet_type):
         print("Adding {} snippets to Firestore/{}.".format(len(snippets), collection_name))
@@ -162,3 +165,5 @@ class Meta:
     def Get_Collections(self):
         return self.doc['collections']
 
+    def delete(self):
+        self.ref.delete()
