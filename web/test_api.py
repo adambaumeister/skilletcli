@@ -12,6 +12,7 @@ TEST_SNIPPET_QUERY = {
     },
     "template_variables": {
         "SINKHOLE_IPV4": "1.1.1.1",
+        "SINKHOLE_IPV6": "::1",
     }
 }
 def test_get_snippets():
