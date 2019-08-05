@@ -11,6 +11,8 @@ META_SCHEMA={
 class Firestore():
     """
     Methods for interacting with gcloud-firestore for the storage and retrieval of PAN skillets.
+
+    This class is for server-side utilities - it requires valid gcloud service account credentials.
     """
     def __init__(self, debug=False):
         self.default_cred_loc = os.getcwd() + os.sep + ".gcp-credentials.json"
@@ -87,8 +89,12 @@ class Firestore():
         match = True
         for k, v in filters.items():
             if k in d:
-                if v != d[k]:
+                if type(v) == list:
+                    if d[k] not in v:
+                        match = False
+                elif v != d[k]:
                     match = False
+
             else:
                 match = False
 

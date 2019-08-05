@@ -6,7 +6,7 @@ TEST_URL="http://127.0.0.1:5000"
 TEST_SNIPPET_QUERY = {
     "skillet": "iron-skillet",
     "filters": {
-        "name": "shared_address",
+        "name": ["shared_address", "shared_tag"],
         "type": "panorama",
         "stack": "snippets",
     },
@@ -25,4 +25,4 @@ def test_get_collections():
 
 if __name__ == "__main__":
     test_get_snippets()
-    #test_get_collections()
+    test_get_collections()
