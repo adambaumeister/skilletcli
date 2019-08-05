@@ -1,8 +1,12 @@
 import requests
+import os
 """
 To use this test suite in dev, first start Flask.
 """
 TEST_URL="http://127.0.0.1:5000"
+if os.getenv("TEST_URL"):
+    TEST_URL = os.getenv("TEST_URL")
+
 TEST_SNIPPET_QUERY = {
     "skillet": "iron-skillet",
     "filters": {
