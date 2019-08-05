@@ -41,8 +41,11 @@ def GetCollections():
     collections = firestore.GetCollections()
     return flask.jsonify(collections)
 
-@app.route('/skillets', methods=['GET'])
-def GetAllSnippets():
+def list_snippets():
+    required_args = [
+        "skillet"
+    ]
+
     firestore = Firestore()
     filters = {}
     for k, v in request.args.items():
@@ -54,16 +57,24 @@ def GetAllSnippets():
     l = []
     for doc_ref in docs:
         l.append(doc_ref.to_dict())
-    return flask.jsonify(l)
+    return l
 
-@app.route('/snippet', methods=['POST'])
+@app.route('/snippet', methods=['GET', 'POST'])
 def GetSnippet():
+    firestore = Firestore()
+
+    # If GET request, list all the snippets instead.
+    if request.method == 'GET':
+        snippets = list_snippets()
+        result = []
+        for s in snippets:
+            result.append(s['name'])
+
+        return flask.jsonify(result)
     data = request.json
 
     filters = data['filters']
     skillet = data['skillet']
-
-    firestore = Firestore()
     docs = firestore.GetDocumentSnaps(skillet, filters)
     print("Query returned {} docs".format(len(docs)))
     l = []

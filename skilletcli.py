@@ -11,7 +11,7 @@ import re
 from colorama import Fore, Back, Style
 import getpass
 import argparse
-from Remotes import Git
+from Remotes import Git, Gcloud
 import json
 
 """
@@ -261,6 +261,34 @@ def check_resp(r, print_result=True):
             print("{}{} : Failed.{}".format(Fore.RED, r.text, Style.RESET_ALL))
         return False
 
+def push_from_gcloud(args):
+    """
+    Pull snippets from Gcloud instead of Git repos.
+    :param args: parsed args from argparse
+    """
+    colorama_init()
+    addr = env_or_prompt("address", prompt_long="address or address:port of PANOS Device to configure: ")
+    user = env_or_prompt("username")
+    pw = env_or_prompt("password", secret=True)
+    fw = Panos(addr, user, pw, debug=args.debug)
+    t = fw.get_type()
+    gc = Gcloud(args.repopath)
+    context = create_context(args.config)
+    snippets = gc.Query(args.repository, t, args.snippetstack, args.snippetnames, context)
+
+    if len(args.snippetnames) == 0:
+        print("printing available {} snippets".format(args.repository))
+        sc.print_all_skillets(elements=args.print_entries)
+        sys.exit(0)
+
+    if len(snippets) == 0:
+        print("{}Snippets {} not found for device type {}.{}".format(Fore.RED, ",".join(args.snippetnames), t,
+                                                                     Style.RESET_ALL))
+    for snippet in snippets:
+        print("Doing {} at {}...".format(snippet.name, snippet.rendered_xpath), end="")
+        r = set_at_path(fw, snippet.rendered_xpath, snippet.rendered_xmlstr)
+        check_resp(r)
+
 def push_skillets(args):
     """
     Based on user configuration (cmdline args), pushes given snippets to a PANOS device.
@@ -335,7 +363,7 @@ def main():
 
     repo_arg_group.add_argument('--repository', default="iron-skillet", metavar="repo_name", help="Name of skillet to use"
                         .format(", ".join(GIT_SKILLET_INDEX.keys())))
-    repo_arg_group.add_argument('--repotype', default="git", help="Type of skillet repo")
+    repo_arg_group.add_argument('--repotype', default="git", help="Type of skillet repo. Available options are [git, api, local]")
     repo_arg_group.add_argument("--branch", help="Git repo branch to use. Use 'list' to view available branches.")
     repo_arg_group.add_argument('--repopath', help="Path to repository if using local repo type")
     repo_arg_group.add_argument("--refresh", help="Refresh the cloned repository directory.", action='store_true')
@@ -349,7 +377,12 @@ def main():
 
     parser.add_argument("snippetnames", help="List of snippets to push by name.", nargs="*")
     args = parser.parse_args()
-    push_skillets(args)
+    # Url pull
+    if args.repotype == "api":
+        push_from_gcloud(args)
+    # Git based pull
+    else:
+        push_skillets(args)
 
 if __name__ == '__main__':
     main()

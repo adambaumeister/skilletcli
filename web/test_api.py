@@ -23,6 +23,11 @@ def test_get_collections():
     res = requests.get(TEST_URL)
     print(res.json())
 
+def test_list_snippets():
+    res = requests.get(TEST_URL +"/snippet?skillet=iron-skillet")
+    print(res.json())
+
 if __name__ == "__main__":
+    test_list_snippets()
     test_get_snippets()
     test_get_collections()
