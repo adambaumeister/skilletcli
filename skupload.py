@@ -35,7 +35,9 @@ def main():
         g.branch(args.branch)
 
     sc = g.build()
-    if args.rebuild_meta:
+    rm = args.rebuild_meta
+    if rm is True:
+        print("Rebuilding db meta")
         firestore.rebuild()
     firestore.AddSkilletCollection(sc)
 
