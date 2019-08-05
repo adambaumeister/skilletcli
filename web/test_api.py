@@ -8,16 +8,15 @@ if os.getenv("TEST_URL"):
     TEST_URL = os.getenv("TEST_URL")
 
 TEST_SNIPPET_QUERY = {
-    "skillet": "iron-skillet",
-    "filters": {
-        "name": ["shared_address", "shared_tag"],
-        "type": "panorama",
-        "stack": "snippets",
-    },
-    "template_variables": {
-        "SINKHOLE_IPV4": "1.1.1.1",
-        "SINKHOLE_IPV6": "::1",
-    }
+  "skillet": "iron-skillet",
+  "filters": {
+    "name": [
+      "tag"
+    ],
+    "type": "panos",
+    "stack": "snippets"
+  },
+  "template_vars": {}
 }
 def test_get_snippets():
     res = requests.post(TEST_URL+"/snippet", json=TEST_SNIPPET_QUERY)

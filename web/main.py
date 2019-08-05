@@ -22,7 +22,7 @@ import sys
 sys.path.append('.')
 sys.path.append('web')
 import flask
-from flask import request
+from flask import request, redirect
 from db import Firestore
 from jinja2 import Template, Environment, BaseLoader, meta
 from passlib.hash import md5_crypt
@@ -34,6 +34,7 @@ app = flask.Flask(__name__)
 VALID_FILTERS = [
     "type",
     "stack",
+    "path",
 ]
 @app.route('/', methods=['GET'])
 def GetCollections():
@@ -41,17 +42,21 @@ def GetCollections():
     collections = firestore.GetCollections()
     return flask.jsonify(collections)
 
-def list_snippets():
-    required_args = [
-        "skillet"
-    ]
+@app.route('/apidocs', methods=['GET'])
+def DocsRedirect():
+    return redirect("/docs/index.html", 302)
 
+
+def list_snippets():
     firestore = Firestore()
     filters = {}
     for k, v in request.args.items():
         if k in VALID_FILTERS:
             filters[k] = v
 
+    skillet_name = request.args.get('skillet')
+    if not skillet_name:
+        return error_message("Missing skillet value."), 405
     docs = firestore.GetDocumentSnaps(request.args.get('skillet'), filters)
     print("Query returned {} docs".format(len(docs)))
     l = []
