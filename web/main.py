@@ -4,7 +4,7 @@ API (programmatic) access to Firestore hosted skillet collections.
 Quickstart Dev
 App creds aren't required when deployed, just for development.
 ```
-    set GOOGLE_APPLICATION_CREDENTIALS=..\.gcp-credentials.json
+    set GOOGLE_APPLICATION_CREDENTIALS=.gcp-credentials.json
     set FLASK_APP=main.py
     flask run
 ```
@@ -56,7 +56,7 @@ def list_snippets():
 
     skillet_name = request.args.get('skillet')
     if not skillet_name:
-        return error_message("Missing skillet value."), 405
+        return False
     docs = firestore.GetDocumentSnaps(request.args.get('skillet'), filters)
     print("Query returned {} docs".format(len(docs)))
     l = []
@@ -71,6 +71,8 @@ def GetSnippet():
     # If GET request, list all the snippets instead.
     if request.method == 'GET':
         snippets = list_snippets()
+        if not snippets:
+            return error_message("Missing skillet value."), 405
         result = []
         for s in snippets:
             result.append(s['name'])
