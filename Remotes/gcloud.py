@@ -42,3 +42,8 @@ class Gcloud():
             snippets.append(snippet)
 
         return snippets
+
+    def List(self, skillet_name, t, stack_name):
+        res = requests.get(self.url + "/snippet?skillet={}&stack={}&type={}".format(skillet_name, stack_name, t))
+        j = res.json()
+        return j

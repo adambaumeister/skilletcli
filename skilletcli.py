@@ -277,8 +277,10 @@ def push_from_gcloud(args):
     snippets = gc.Query(args.repository, t, args.snippetstack, args.snippetnames, context)
 
     if len(args.snippetnames) == 0:
-        print("printing available {} snippets".format(args.repository))
-        sc.print_all_skillets(elements=args.print_entries)
+        print("printing available {} snippets for type {} in stack {}".format(args.repository, t, args.snippetstack))
+        snippet_names = gc.List(args.repository, t, args.snippetstack)
+        for sn in snippet_names:
+            print(sn)
         sys.exit(0)
 
     if len(snippets) == 0:

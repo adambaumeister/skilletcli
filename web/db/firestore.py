@@ -17,10 +17,6 @@ class Firestore():
     def __init__(self, debug=False):
         self.default_cred_loc = os.getcwd() + os.sep + ".gcp-credentials.json"
         self.debug = debug
-        # make sure we have valid gcloud creds
-        creds = self.check_creds()
-        #if not creds:
-        #    raise ValueError("Missing required API credentials file".format(GCLOUD_API_VAR))
 
         self.db = self.connect()
 
@@ -46,6 +42,10 @@ class Firestore():
             print(msg)
 
     def GetCollections(self):
+        """
+        Retrieve all of the currently uploaded Skillets (Collections)
+        :return: ([]string): List of collections.
+        """
         meta = self.get_meta()
         return meta.Get_Collections()
 
@@ -114,6 +114,14 @@ class Firestore():
         m.delete()
 
     def add_snippets(self, snippets, collection_name, stack_name, skillet_type):
+        """
+        Adds n snippets to the provided Firestore collection (skillet name) with the given field values
+        :param snippets: Snippet class instances
+        :param collection_name: Name of firestore collection to add to
+        :param stack_name: Snippet stack association (eg. snippets)
+        :param skillet_type: Type of device skillet targets (panos|panorama)
+        :return: (int): total number of changes to firestore db
+        """
         print("Adding {} snippets to Firestore/{}.".format(len(snippets), collection_name))
         # Add the skillet as a collection to the Firestore DB
         # This requires updating the DB "meta" schema document.
@@ -131,7 +139,7 @@ class Firestore():
         for ref in doc_refs:
             b.delete(ref)
         b.commit()
-
+        total_changes = len(doc_refs) + len(snippets)
         b = self.db.batch()
         for snippet in snippets:
             d = {
@@ -147,6 +155,7 @@ class Firestore():
             b.set(doc_ref, d)
 
         b.commit()
+        return total_changes
 
 class Meta:
     """

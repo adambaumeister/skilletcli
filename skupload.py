@@ -2,6 +2,12 @@ import argparse
 from Remotes import Git
 from web.db import Firestore
 
+"""
+SKupload
+
+Retrieves PANOS Skillets from SCM (Github, usually) and uploads them to gcloud firestore database.
+"""
+
 def main():
     """
     Main runtime. Decides which function to break into, either push for snippet pushes or other.
