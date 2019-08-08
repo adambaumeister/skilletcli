@@ -17,6 +17,7 @@ gcloud app deploy
 ```
 """
 import sys
+import re
 # This hack lets us check the current directory for packages
 # while not breaking the way appengine sees it
 sys.path.append('.')
@@ -26,7 +27,7 @@ from flask import request, redirect
 from db import Firestore
 from jinja2 import Template, Environment, BaseLoader, meta
 from passlib.hash import md5_crypt
-
+from .webfuncs import ValidRequest
 
 
 app = flask.Flask(__name__)
@@ -47,17 +48,14 @@ def DocsRedirect():
     return redirect("/docs/index.html", 302)
 
 
-def list_snippets():
+def list_snippets(skillet_name):
     firestore = Firestore()
     filters = {}
     for k, v in request.args.items():
         if k in VALID_FILTERS:
             filters[k] = v
 
-    skillet_name = request.args.get('skillet')
-    if not skillet_name:
-        return False
-    docs = firestore.GetDocumentSnaps(request.args.get('skillet'), filters)
+    docs = firestore.GetDocumentSnaps(skillet_name, filters)
     print("Query returned {} docs".format(len(docs)))
     l = []
     for doc_ref in docs:
@@ -70,14 +68,20 @@ def GetSnippet():
 
     # If GET request, list all the snippets instead.
     if request.method == 'GET':
-        snippets = list_snippets()
-        if not snippets:
+        vr = ValidRequest(required_args=['skillet'])
+        if not vr.parse(request):
             return error_message("Missing skillet value."), 405
+
+        skillet_name = vr.get('skillet')
+
+        snippets = list_snippets(skillet_name)
         result = []
         for s in snippets:
             result.append(s['name'])
 
         return flask.jsonify(result)
+
+    # Otherwise, get the specific snippet
     data = request.json
 
     filters = data['filters']
@@ -100,6 +104,25 @@ def GetSnippet():
 
         l.append(doc_dict)
     return flask.jsonify(l)
+
+@app.route('/search', methods=['GET'])
+def SearchSnippets():
+    ra = ['skillet', 'search']
+    search_fields = ['name', 'path']
+    vr = ValidRequest(required_args=ra)
+    if not vr.parse(request):
+        return error_message("Missing required args {}.".format(ra)), 405
+
+    skillet_name = vr.get('skillet')
+    search_string = vr.get('search')
+    snippets = list_snippets(skillet_name)
+    r = []
+    for s in snippets:
+        for sf in search_fields:
+            if re.search(search_string, s[sf]):
+                r.append(s)
+
+    return flask.jsonify(r)
 
 
 def error_message(msg):

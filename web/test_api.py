@@ -4,6 +4,9 @@ import os
 To use this test suite in dev, first start Flask.
 
 To test against a real environment, use the envvar TEST_URL.
+
+This test suite uses the "iron-skillet" skillet as test data. As such, you must have uploaded it using skupload.py before
+this suite will work.
 """
 TEST_URL="http://127.0.0.1:5000"
 if os.getenv("TEST_URL"):
@@ -74,8 +77,15 @@ def test_broken_snippet_query():
     assert "result" in j
     assert j["result"] == "error"
 
+def test_search():
+    # Test search functionality
+    res = requests.get(TEST_URL +"/search?skillet=iron-skillet&search=tag")
+    j = res.json()
+    assert len(j) >= 1
+
 
 if __name__ == "__main__":
+    test_search()
     test_list_snippets()
     test_get_snippets()
     test_get_collections()
