@@ -65,6 +65,36 @@ paths:
               type: "string"
         405:
           description: "Invalid input, or missing required parameters."
+  /search:
+    get:
+      tags:
+        - "Skillets"
+      summary: "Search for the given string in the skillet database."
+      description: ""
+      operationId: "Search"
+      produces:
+        - "application/json"
+      parameters:
+        - in: query
+          name: skillet
+          type: string
+          description: "Skillet name."
+          example: "iron-skillet"
+        - in: query
+          name: search
+          type: string
+          description: "Search string."
+          example: "tag"
+      responses:
+        200:
+          description: "Query OK"
+          schema:
+            type: "array"
+            description: "Skillet list"
+            items:
+              type: "string"
+        405:
+          description: "Invalid input, or missing required parameters."
 definitions:
   Query:
     type: "object"

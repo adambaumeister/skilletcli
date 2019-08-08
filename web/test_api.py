@@ -8,6 +8,7 @@ To test against a real environment, use the envvar TEST_URL.
 This test suite uses the "iron-skillet" skillet as test data. As such, you must have uploaded it using skupload.py before
 this suite will work.
 """
+
 TEST_URL="http://127.0.0.1:5000"
 if os.getenv("TEST_URL"):
     TEST_URL = os.getenv("TEST_URL")
@@ -37,6 +38,14 @@ TEST_SNIPPET_ADDRESS_QUERY = {
       "IPV4_SINKHOLE": "127.0.0.1"
   }
 }
+
+def test_search():
+    # Test search functionality
+    res = requests.get(TEST_URL +"/search?skillet=iron-skillet&search=tag&type=panorama")
+    j = res.json()
+    # for s in j:
+     #   print(s['name'], s['path'], s['stack'], s['type'])
+    assert len(j) >= 1
 
 
 def test_get_snippets():
@@ -76,14 +85,6 @@ def test_broken_snippet_query():
     j = res.json()
     assert "result" in j
     assert j["result"] == "error"
-
-def test_search():
-    # Test search functionality
-    res = requests.get(TEST_URL +"/search?skillet=iron-skillet&search=tag&type=panorama")
-    j = res.json()
-    # for s in j:
-     #   print(s['name'], s['path'], s['stack'], s['type'])
-    assert len(j) >= 1
 
 
 if __name__ == "__main__":
