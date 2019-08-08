@@ -118,9 +118,12 @@ def SearchSnippets():
     snippets = list_snippets(skillet_name)
     r = []
     for s in snippets:
+        match = False
         for sf in search_fields:
             if re.search(search_string, s[sf]):
-                r.append(s)
+                match = True
+        if match:
+            r.append(s)
 
     return flask.jsonify(r)
 

@@ -79,8 +79,10 @@ def test_broken_snippet_query():
 
 def test_search():
     # Test search functionality
-    res = requests.get(TEST_URL +"/search?skillet=iron-skillet&search=tag")
+    res = requests.get(TEST_URL +"/search?skillet=iron-skillet&search=tag&type=panorama")
     j = res.json()
+    # for s in j:
+     #   print(s['name'], s['path'], s['stack'], s['type'])
     assert len(j) >= 1
 
 
