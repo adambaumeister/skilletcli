@@ -27,7 +27,7 @@ from flask import request, redirect
 from db import Firestore
 from jinja2 import Template, Environment, BaseLoader, meta
 from passlib.hash import md5_crypt
-from .webfuncs import ValidRequest
+from webfuncs import ValidRequest
 
 
 app = flask.Flask(__name__)
