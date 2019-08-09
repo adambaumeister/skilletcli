@@ -166,13 +166,10 @@ parameters:
     in: query
     name: stack
     type: string
-    example: "snippets"
   pathParam:
     in: query
     name: path
     type: string
-    example: "/config/shared/tag"
-
 
 externalDocs:
   description: "Find out more about Swagger"

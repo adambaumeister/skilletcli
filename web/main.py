@@ -143,7 +143,6 @@ def template(str, context):
     vars = meta.find_undeclared_variables(ast)
     for v in vars:
         if v not in context:
-            print("Missing var: {}".format(v))
             return
     t = e.from_string(str)
 
