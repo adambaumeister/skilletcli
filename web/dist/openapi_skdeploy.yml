@@ -80,19 +80,23 @@ paths:
           type: string
           description: "Skillet name."
           example: "iron-skillet"
+          required: true
         - in: query
           name: search
           type: string
           description: "Search string."
           example: "tag"
+          required: true
+        - $ref: "#/parameters/pathParam"
+        - $ref: "#/parameters/typeParam"
+        - $ref: "#/parameters/stackParam"
       responses:
         200:
           description: "Query OK"
           schema:
             type: "array"
-            description: "Skillet list"
             items:
-              type: "string"
+              $ref: "#/definitions/Snippet"
         405:
           description: "Invalid input, or missing required parameters."
 definitions:
@@ -149,6 +153,26 @@ definitions:
       xml:
         type: "string"
         description: "Templated XML configuration"
+
+parameters:
+  typeParam:
+    in: query
+    name: type
+    type: string
+    enum:
+      - "panos"
+      - "panorama"
+  stackParam:
+    in: query
+    name: stack
+    type: string
+    example: "snippets"
+  pathParam:
+    in: query
+    name: path
+    type: string
+    example: "/config/shared/tag"
+
 
 externalDocs:
   description: "Find out more about Swagger"
