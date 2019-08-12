@@ -59,7 +59,10 @@ def list_snippets(skillet_name):
     print("Query returned {} docs".format(len(docs)))
     l = []
     for doc_ref in docs:
-        l.append(doc_ref.to_dict())
+        d = doc_ref.to_dict()
+        vars = display_vars(d["xml"])
+        d['template_variables'] = list(vars)
+        l.append(d)
     return l
 
 @app.route('/snippet', methods=['GET', 'POST'])
@@ -137,7 +140,7 @@ def error_message(msg):
 
 def template(str, context):
     e = Environment(loader=BaseLoader)
-    e.filters["md5_ hash"] = md5_hash
+    e.filters["md5_hash"] = md5_hash
 
     ast = e.parse(str)
     vars = meta.find_undeclared_variables(ast)
@@ -147,6 +150,14 @@ def template(str, context):
     t = e.from_string(str)
 
     return(t.render(context))
+
+def display_vars(str):
+    e = Environment(loader=BaseLoader)
+    e.filters["md5_hash"] = md5_hash
+
+    ast = e.parse(str)
+    vars = meta.find_undeclared_variables(ast)
+    return vars
 
 # define functions for custom jinja filters
 def md5_hash(txt):

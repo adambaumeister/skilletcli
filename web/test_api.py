@@ -41,10 +41,10 @@ TEST_SNIPPET_ADDRESS_QUERY = {
 
 def test_search():
     # Test search functionality
-    res = requests.get(TEST_URL +"/search?skillet=iron-skillet&search=tag&type=panorama")
+    res = requests.get(TEST_URL +"/search?skillet=iron-skillet&search=address&type=panorama")
     j = res.json()
-    # for s in j:
-     #   print(s['name'], s['path'], s['stack'], s['type'])
+    for s in j:
+       print(s['name'], s['path'], s['stack'], s['type'], s['template_variables'])
     assert len(j) >= 1
 
 

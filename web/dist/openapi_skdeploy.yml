@@ -153,6 +153,11 @@ definitions:
       xml:
         type: "string"
         description: "Templated XML configuration"
+      template_variables:
+        type: array
+        items:
+          type: "string"
+        description: "Variables used in this template."
 
 parameters:
   typeParam:
