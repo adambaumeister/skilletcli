@@ -35,7 +35,7 @@ class Panos:
     """
     PANOS Device. Could be a firewall or PANORAMA.
     """
-    def __init__(self, addr, user, pw, connect=True, debug=False):
+    def __init__(self, addr, user, pw, connect=True, debug=False, verify=False):
         """
         Initialize a new panos object
         :param addr: NAME:PORT combination (ex. l72.16.0.1:443)
@@ -47,6 +47,8 @@ class Panos:
             r'panorama': "panorama",
             r'm-': "panorama",
         }
+
+        self.verify = verify
 
         self.url = "https://{}/api".format(addr)
         self.user = user
@@ -94,7 +96,7 @@ class Panos:
         self.log("{} : {}".format(url, params), level=2)
         try:
             # = requests.get(url, params=params, verify=False)
-            r = requests.post(url, data=params, verify=False)
+            r = requests.post(url, data=params, verify=self.verify)
         except ProtocolError:
             print("Failed to send a rqequest.")
             exit(1)
@@ -266,11 +268,12 @@ def push_from_gcloud(args):
     Pull snippets from Gcloud instead of Git repos.
     :param args: parsed args from argparse
     """
-    colorama_init()
+    print("{}Note: retrieval of snippets from webapi is currently experimental. Use with caution!{}".format(Fore.RED, Style.RESET_ALL))
+
     addr = env_or_prompt("address", prompt_long="address or address:port of PANOS Device to configure: ")
     user = env_or_prompt("username")
     pw = env_or_prompt("password", secret=True)
-    fw = Panos(addr, user, pw, debug=args.debug)
+    fw = Panos(addr, user, pw, debug=args.debug, verify=args.validate)
     t = fw.get_type()
     gc = Gcloud(args.repopath)
     context = create_context(args.config)
@@ -296,7 +299,6 @@ def push_skillets(args):
     Based on user configuration (cmdline args), pushes given snippets to a PANOS device.
     :param args: parsed args from argparse
     """
-    colorama_init()
     if args.repotype == "git":
         if args.repository not in GIT_SKILLET_INDEX:
             if not args.repopath:
@@ -324,8 +326,6 @@ def push_skillets(args):
     else:
         print("No other skillet types currently supported.")
         exit(1)
-
-    requests.packages.urllib3.disable_warnings()
 
     if len(args.snippetnames) == 0:
         print("printing available {} snippets".format(repo_name))
@@ -356,6 +356,8 @@ def main():
     """
     Main runtime. Decides which function to break into, either push for snippet pushes or other.
     """
+    colorama_init()
+
     # Setup argparse
     parser = argparse.ArgumentParser(description="Deploy a Skillet to a PANOS device from one of the possible repo types.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     config_arg_group = parser.add_argument_group("Configuration options")
@@ -372,13 +374,20 @@ def main():
     repo_arg_group.add_argument("--update", help="Update the cloned repository", action='store_true')
 
     config_arg_group.add_argument("--config", default="config_variables.yaml", help="Path to YAML variable configuration file.")
-    script_options.add_argument("--debug", default="False", help="Enable debugging.", action='store_true')
+    script_options.add_argument("--debug", help="Enable debugging.", action='store_true')
+    script_options.add_argument("--validate", help="Enable certificate validation on all endpoints.", action='store_true')
 
     selection_options.add_argument("--snippetstack", default="snippets", help="Snippet stack to use. ")
     selection_options.add_argument("--print_entries", help="Print not just the snippet names, but the entries within them.", action='store_true')
 
     parser.add_argument("snippetnames", help="List of snippets to push by name.", nargs="*")
     args = parser.parse_args()
+
+    if not args.validate:
+        print("""{}Warning: SSL validation is currently disabled. Use --validate to enable it.{}
+        """.format(Fore.YELLOW, Style.RESET_ALL))
+        requests.packages.urllib3.disable_warnings()
+
     # Url pull
     if args.repotype == "api":
         push_from_gcloud(args)
