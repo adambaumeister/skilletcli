@@ -112,16 +112,16 @@ variables:
       - esxlab\administrators
 
   - name: GP_PORTAL_IP
-    value: 10.10.255.1
+    value: 10.10.10.250
 
   - name: GP_PORTAL_INT
-    value: loopback.10
+    value: loopback.99
 
   - name: GP_EXTERNAL_GW_ADDR
-    value: 10.10.255.2
+    value: 10.10.10.251
 
   - name: GP_EXTERNAL_GW_INTERFACE
-    value: loopback.20
+    value: loopback.100
 
   - name: IP_POOL
     value: 10.10.200.0/24
@@ -139,11 +139,17 @@ variables:
   - name: TUNNEL_INTERFACE
     value: tunnel.50
 
+  - name: TUNNEL_ZONE
+    value: INSIDE
+
+  - name: VR
+    value: default
+
   - name: GP_EXTERNAL_GW_DNS
     value: egw-test.org.com
 
   - name: PORTAL_SSL_PROFILE
-    value: combo-ssl
+    value: portal
 
   - name: EGW_SSL_PROFILE
-    value: combo-ssl
+    value: egw

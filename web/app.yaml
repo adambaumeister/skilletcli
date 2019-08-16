@@ -1,0 +1,5 @@
+runtime: python37
+default_expiration: "1m"
+handlers:
+  - url: /docs
+    static_dir: dist

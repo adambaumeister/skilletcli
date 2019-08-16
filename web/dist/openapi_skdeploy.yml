@@ -1,0 +1,181 @@
+swagger: "2.0"
+info:
+  description: "Skillet hosting API."
+  version: "1.0.0"
+  title: "Skillet Deploy"
+  contact:
+    email: "abaumeister@paloaltonetworks.com"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "skillet-deploy.appspot.com"
+basePath: "/"
+tags:
+- name: "Skillets"
+  description: "All queries relating to PAN configuration Skillets."
+  externalDocs:
+    description: "More information & tools"
+    url: "https://github.com/adambaumeister/skilletcli"
+schemes:
+- "https"
+paths:
+  /snippet:
+    post:
+      tags:
+      - "Skillets"
+      summary: "Submit a query to the Skillet database."
+      description: ""
+      operationId: "GetSnippet"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Skillet snippet query."
+        required: true
+        schema:
+          $ref: "#/definitions/Query"
+      responses:
+        200:
+          description: "Query OK."
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Snippet"
+        405:
+          description: "Invalid input, or missing required parameters."
+  /:
+    get:
+      tags:
+        - "Skillets"
+      summary: "Retrieve a list of all of the available skillets."
+      description: ""
+      operationId: "GetCollections"
+      produces:
+        - "application/json"
+      responses:
+        200:
+          description: "Query OK"
+          schema:
+            type: "array"
+            description: "Skillet list"
+            items:
+              type: "string"
+        405:
+          description: "Invalid input, or missing required parameters."
+  /search:
+    get:
+      tags:
+        - "Skillets"
+      summary: "Search for the given string in the skillet database."
+      description: ""
+      operationId: "Search"
+      produces:
+        - "application/json"
+      parameters:
+        - in: query
+          name: skillet
+          type: string
+          description: "Skillet name."
+          example: "iron-skillet"
+          required: true
+        - in: query
+          name: search
+          type: string
+          description: "Search string."
+          example: "tag"
+          required: true
+        - $ref: "#/parameters/pathParam"
+        - $ref: "#/parameters/typeParam"
+        - $ref: "#/parameters/stackParam"
+      responses:
+        200:
+          description: "Query OK"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Snippet"
+        405:
+          description: "Invalid input, or missing required parameters."
+definitions:
+  Query:
+    type: "object"
+    required:
+    - "skillet"
+    properties:
+      skillet:
+        type: "string"
+        example: "iron-skillet"
+      filters:
+        $ref: "#/definitions/Filters"
+      template_vars:
+        $ref: "#/definitions/TemplateVars"
+  Filters:
+    type: "object"
+    properties:
+      name:
+        type: "array"
+        items:
+          type: "string"
+          example: "tag"
+      type:
+        type: "string"
+        example: "panos"
+      stack:
+        type: "string"
+        example: "snippets"
+  TemplateVars:
+    type: "object"
+
+  Snippet:
+    type: "object"
+    properties:
+      name:
+        type: "string"
+        description: "snippet name"
+      path:
+        type: "string"
+        description: "templated xpath"
+      skillet:
+        type: "string"
+        description: "skillet the snippet belongs to"
+      stack:
+        type: "string"
+        description: "snippet stack this snippet belongs to"
+      type:
+        type: "string"
+        description: "PAN device type"
+        enum:
+          - "panos"
+          - "panorama"
+      xml:
+        type: "string"
+        description: "Templated XML configuration"
+      template_variables:
+        type: array
+        items:
+          type: "string"
+        description: "Variables used in this template."
+
+parameters:
+  typeParam:
+    in: query
+    name: type
+    type: string
+    enum:
+      - "panos"
+      - "panorama"
+  stackParam:
+    in: query
+    name: stack
+    type: string
+  pathParam:
+    in: query
+    name: path
+    type: string
+
+externalDocs:
+  description: "Find out more about Swagger"
+  url: "http://swagger.io"

@@ -131,7 +131,7 @@ class Git:
                 if not os.path.isfile(fp):
                     skillet_types[dir] = fp
 
-        sc = SkilletCollection()
+        sc = SkilletCollection(self.name)
         # Now we extract the SNIPPET_DIRS
         for name, fp in skillet_types.items():
             sk = sc.new_skillet(name, name, ".*")

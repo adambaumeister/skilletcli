@@ -12,6 +12,17 @@ To use skilletcli, a Git client must be installed.
 
 Linux users can use their preferred package manager.
 
+### Experimental: HTTP-based skillet retrieval
+Skillets will eventually be hosted centrally, via a publicly accessible API.
+If you retrieve skillets this way, you do _not_ need a Git client.
+
+**At the moment, this functionality is still in dev, so use at your own risk.**
+
+To leverage this functionality add the flags --repotype and --repopath, as below.
+```bash
+skilletcli --repotype api --repopath https://skillet-deploy.appspot.com
+```
+
 ### Getting the code
 **windows/linux/OSX**
 
