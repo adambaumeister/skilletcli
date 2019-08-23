@@ -118,12 +118,11 @@ def push_test(sc, test_stack, test_snippets):
     print(success_count)
     assert success_count > 0
 
-def test_homedir():
-    home = str(Path.home())
-
 def test_get_creds_file():
     kd = KeyDB(CREDS_FILENAME)
     kd.add_key("test_device", "notarealkey")
+    v = kd.lookup("test_device")
+    assert v == "notarealkey"
 
 if __name__ == '__main__':
     test_get_creds_file()

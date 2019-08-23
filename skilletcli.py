@@ -7,6 +7,7 @@ from xml.etree import ElementTree
 from xml.etree.ElementTree import ParseError
 from urllib3.exceptions import ProtocolError
 from colorama import init as colorama_init
+from panos import KeyDB
 import re
 from colorama import Fore, Back, Style
 import getpass
@@ -33,11 +34,12 @@ GIT_SKILLET_INDEX = {
 }
 # SKCLI credentials cache
 CREDS_FILENAME = ".skcli.json"
+KEY_DB = KeyDB(CREDS_FILENAME)
 class Panos:
     """
     PANOS Device. Could be a firewall or PANORAMA.
     """
-    def __init__(self, addr, user, pw, connect=True, debug=False, verify=False):
+    def __init__(self, addr, apikey=None, user="admin", pw=None, connect=True, debug=False, verify=False):
         """
         Initialize a new panos object
         :param addr: NAME:PORT combination (ex. l72.16.0.1:443)
@@ -62,6 +64,10 @@ class Panos:
             self.log_level = 0
 
         self.log("Logging level is {}".format(self.log_level))
+        if apikey:
+            self.key = apikey
+            return
+
         if connect:
             self.connect()
 
@@ -278,10 +284,17 @@ def push_from_gcloud(args):
     """
     print("{}Note: retrieval of snippets from webapi is currently experimental. Use with caution!{}".format(Fore.RED, Style.RESET_ALL))
 
+    # Address must be passed, then lookup keystore if it exists.
     addr = env_or_prompt("address", args, prompt_long="address or address:port of PANOS Device to configure: ")
-    user = env_or_prompt("username", args)
-    pw = env_or_prompt("password", args, secret=True)
-    fw = Panos(addr, user, pw, debug=args.debug, verify=args.validate)
+    apikey = KEY_DB.lookup(addr)
+    if not apikey:
+        user = env_or_prompt("username", args)
+        pw = env_or_prompt("password", args, secret=True)
+        fw = Panos(addr, user=user, pw=pw, debug=args.debug, verify=args.validate)
+        KEY_DB.add_key(addr, fw.key)
+    else:
+        fw = Panos(addr, apikey=apikey, debug=args.debug, verify=args.validate)
+
     t = fw.get_type()
     gc = Gcloud(args.repopath)
     context = create_context(args.config)
@@ -341,10 +354,16 @@ def push_skillets(args):
         sys.exit(0)
     else:
         addr = env_or_prompt("address", args, prompt_long="address or address:port of PANOS Device to configure: ")
-        user = env_or_prompt("username", args)
-        pw = env_or_prompt("password", args, secret=True)
+        apikey = KEY_DB.lookup(addr)
+        print(apikey)
+        if not apikey:
+            user = env_or_prompt("username", args)
+            pw = env_or_prompt("password", args, secret=True)
+            fw = Panos(addr, user=user, pw=pw, debug=args.debug, verify=args.validate)
+            KEY_DB.add_key(addr, fw.key)
+        else:
+            fw = Panos(addr, apikey=apikey, debug=args.debug, verify=args.validate)
 
-        fw = Panos(addr, user, pw, debug=args.debug)
         t = fw.get_type()
 
         skillet = sc.get_skillet(t.lower())
@@ -388,6 +407,8 @@ def main():
     script_options.add_argument("--username", help="Firewall/Panorama username. Can also use envvar SKCLI_USERNAME.")
     script_options.add_argument("--address", help="Firewall/Panorama address. Can also use envvar SKCLI_ADDRESS")
     script_options.add_argument("--password", help="Firewall/Panorama login password. Can also use envvar SKCLI_PASSWORD")
+    script_options.add_argument("--clear_keystore", help="Remove all stored apikeys.", action='store_true')
+
 
     selection_options.add_argument("--snippetstack", default="snippets", help="Snippet stack to use. ")
     selection_options.add_argument("--print_entries", help="Print not just the snippet names, but the entries within them.", action='store_true')
@@ -399,6 +420,9 @@ def main():
         print("""{}Warning: SSL validation is currently disabled. Use --validate to enable it.{}
         """.format(Fore.YELLOW, Style.RESET_ALL))
         requests.packages.urllib3.disable_warnings()
+
+    if args.clear_keystore:
+        KEY_DB.reinit()
 
     # Url pull
     if args.repotype == "api":

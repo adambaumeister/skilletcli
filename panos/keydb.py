@@ -9,8 +9,8 @@ class KeyDB:
     """
     def __init__(self, fn):
         self.filename = fn
-        self.get_creds_file()
         self.keys = {}
+        self.get_creds_file()
 
     def get_creds_file(self):
         filename = self.filename
@@ -29,9 +29,15 @@ class KeyDB:
         if device in self.keys:
             return self.keys[device]
 
-
     def add_key(self, device, key):
         self.keys[device] = key
+        fh = open(self.path, "w")
+        json.dump(self.keys, fh)
+        fh.close()
+        os.chmod(self.path, 400)
+
+    def reinit(self):
+        self.keys = {}
         fh = open(self.path, "w")
         json.dump(self.keys, fh)
         fh.close()
