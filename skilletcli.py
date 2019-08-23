@@ -228,11 +228,14 @@ def get_type(panos):
     elem = root.findall("./result/system/model")
     return elem[0].text
 
-def env_or_prompt(prompt, prompt_long=None, secret=False):
+def env_or_prompt(prompt, args, prompt_long=None, secret=False):
     k = "SKCLI_{}".format(prompt).upper()
     e = os.getenv(k)
     if e:
         return e
+
+    if args.__dict__[prompt]:
+        return args.__dict__[prompt]
 
     if secret:
         e = getpass.getpass(prompt + ": ")
@@ -270,9 +273,9 @@ def push_from_gcloud(args):
     """
     print("{}Note: retrieval of snippets from webapi is currently experimental. Use with caution!{}".format(Fore.RED, Style.RESET_ALL))
 
-    addr = env_or_prompt("address", prompt_long="address or address:port of PANOS Device to configure: ")
-    user = env_or_prompt("username")
-    pw = env_or_prompt("password", secret=True)
+    addr = env_or_prompt("address", args, prompt_long="address or address:port of PANOS Device to configure: ")
+    user = env_or_prompt("username", args)
+    pw = env_or_prompt("password", args, secret=True)
     fw = Panos(addr, user, pw, debug=args.debug, verify=args.validate)
     t = fw.get_type()
     gc = Gcloud(args.repopath)
@@ -332,9 +335,10 @@ def push_skillets(args):
         sc.print_all_skillets(elements=args.print_entries)
         sys.exit(0)
     else:
-        addr = env_or_prompt("address", prompt_long="address or address:port of PANOS Device to configure: ")
-        user = env_or_prompt("username")
-        pw = env_or_prompt("password", secret=True)
+        addr = env_or_prompt("address", args, prompt_long="address or address:port of PANOS Device to configure: ")
+        user = env_or_prompt("username", args)
+        pw = env_or_prompt("password", args, secret=True)
+
         fw = Panos(addr, user, pw, debug=args.debug)
         t = fw.get_type()
 
@@ -376,6 +380,9 @@ def main():
     config_arg_group.add_argument("--config", default="config_variables.yaml", help="Path to YAML variable configuration file.")
     script_options.add_argument("--debug", help="Enable debugging.", action='store_true')
     script_options.add_argument("--validate", help="Enable certificate validation on all endpoints.", action='store_true')
+    script_options.add_argument("--username", help="Firewall/Panorama username. Can also use envvar SKCLI_USERNAME.")
+    script_options.add_argument("--address", help="Firewall/Panorama address. Can also use envvar SKCLI_ADDRESS")
+    script_options.add_argument("--password", help="Firewall/Panorama login password. Can also use envvar SKCLI_PASSWORD")
 
     selection_options.add_argument("--snippetstack", default="snippets", help="Snippet stack to use. ")
     selection_options.add_argument("--print_entries", help="Print not just the snippet names, but the entries within them.", action='store_true')
