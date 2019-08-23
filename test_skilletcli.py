@@ -1,9 +1,12 @@
 from Remotes import Git
-from skilletcli import create_context, env_or_prompt, set_at_path, check_resp
+from skilletcli import create_context, set_at_path, check_resp, CREDS_FILENAME
+from panos import KeyDB
 from pytest import fixture
 from skilletcli import Panos
 import os
 import pytest
+from pathlib import Path
+
 
 @fixture
 def g():
@@ -115,5 +118,12 @@ def push_test(sc, test_stack, test_snippets):
     print(success_count)
     assert success_count > 0
 
+def test_homedir():
+    home = str(Path.home())
+
+def test_get_creds_file():
+    kd = KeyDB(CREDS_FILENAME)
+    kd.add_key("test_device", "notarealkey")
+
 if __name__ == '__main__':
-    test_type_switch()
+    test_get_creds_file()

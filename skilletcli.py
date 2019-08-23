@@ -31,6 +31,8 @@ Usage:
 GIT_SKILLET_INDEX = {
     "iron-skillet": "https://github.com/PaloAltoNetworks/iron-skillet.git"
 }
+# SKCLI credentials cache
+CREDS_FILENAME = ".skcli.json"
 class Panos:
     """
     PANOS Device. Could be a firewall or PANORAMA.
@@ -247,6 +249,9 @@ def env_or_prompt(prompt, args, prompt_long=None, secret=False):
 
     e = input(prompt + ": ")
     return e
+
+
+
 
 def check_resp(r, print_result=True):
     try:
