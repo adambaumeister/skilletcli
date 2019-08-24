@@ -293,14 +293,15 @@ def main():
     args = parser.parse_args()
 
     if not args.validate:
-        print("""{}API keys will be saved, per device, at {}.{}""".format(
-            Fore.MAGENTA, KEY_DB.path, Style.RESET_ALL)
-        )
+        print("""{}Warning: SSL validation is currently disabled. Use --validate to enable it.{}
+        """.format(Fore.YELLOW, Style.RESET_ALL))
         requests.packages.urllib3.disable_warnings()
 
     if args.enable_keystore:
-        print("""{}Warning: SSL validation is currently disabled. Use --validate to enable it.{}
-        """.format(Fore.YELLOW, Style.RESET_ALL))
+        print("""{}API keys will be saved, per device, at {}.{}""".format(
+            Fore.MAGENTA, KEY_DB.path, Style.RESET_ALL)
+        )
+
         KEY_DB.enable()
 
     if args.clear_keystore:

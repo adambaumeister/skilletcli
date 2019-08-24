@@ -74,4 +74,4 @@ class KeyDB:
         fh = open(self.path, "w")
         json.dump(self.keys, fh)
         fh.close()
-        os.chmod(self.path, 400)
+        os.chmod(self.path, 600)
