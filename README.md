@@ -38,8 +38,7 @@ skilletcli is being run from.
 
 [click here to see a complete example, populated with default values](README.md)
 
-If this file is not specified or is missing/unavailable, defaults will be used. Defaults
-are sourced from the selected snippet metafile. 
+If this file is not specified or is missing/unavailable, defaults will be used. 
 
 ## Usage
 ### Overview of skillet layout
@@ -73,6 +72,21 @@ skilletcli address tag external_list
 Same as the above except push multiple snippets in the one command. As many snippets as is required 
 can be pushed like this.
 
+### Key storage
+APIkeys can be stored locally to avoid the use of environment variables for command line flags.
+
+The keystore can be enabled by passing the flag --enable_keystore when running any skcli command. If authentication is sucessful, the generated API key
+will be stored in $HOME/.skcli.json.
+
+After the keystore has been enabled once, the flag does not need to be re-specified on subsequent runs.
+```
+# Enable the keystore
+skilletcli --enable_keystore <args>
+```
+```
+# Clear the keystore 
+skilletcli --clear_keystore
+```
 ### Environment variables
 SkilletCLI allows you to use environment variables instead of an interactive prompt.
 
