@@ -5,7 +5,7 @@ import requests
 from yaml.scanner import ScannerError
 from xml.etree import ElementTree
 from xml.etree.ElementTree import ParseError
-from urllib3.exceptions import ProtocolError
+from panos import Panos
 from colorama import init as colorama_init
 from panos import KeyDB
 import re
@@ -35,130 +35,6 @@ GIT_SKILLET_INDEX = {
 # SKCLI credentials cache
 CREDS_FILENAME = ".skcli.json"
 KEY_DB = KeyDB(CREDS_FILENAME)
-class Panos:
-    """
-    PANOS Device. Could be a firewall or PANORAMA.
-    """
-    def __init__(self, addr, apikey=None, user="admin", pw=None, connect=True, debug=False, verify=False):
-        """
-        Initialize a new panos object
-        :param addr: NAME:PORT combination (ex. l72.16.0.1:443)
-        :param user: username
-        :param pw: password
-        :param connect (true): Specify whether to connect at init or not.
-        """
-        self.type_switch = {
-            r'panorama': "panorama",
-            r'm-': "panorama",
-        }
-
-        self.verify = verify
-
-        self.url = "https://{}/api".format(addr)
-        self.user = user
-        self.pw = pw
-        self.key = ''
-        if debug == True:
-            self.log_level = 1
-        else:
-            self.log_level = 0
-
-        self.log("Logging level is {}".format(self.log_level))
-        if apikey:
-            self.key = apikey
-            return
-
-        if connect:
-            self.connect()
-
-
-    def connect(self):
-        """
-        Connect to a PANOS device and retrieve an API key.
-        :return: API Key
-        """
-        params = {
-            "type": "keygen",
-            "user": self.user,
-            "password": self.pw,
-        }
-        self.log("Connecting to {}".format(self.url))
-        r = self.send(params)
-        if not self.check_resp(r):
-            print("Error on login received from PANOS: {}".format(r.text))
-            exit(1)
-
-        root = ElementTree.fromstring(r.content)
-        elem = root.findall("./result/key")
-        self.key = elem[0].text
-        return self.key
-
-    def send(self, params):
-        """
-        Send a request to this PANOS device
-        :param params: dict: GET parameters for query ({ "type": "op" })
-        :return: GET Response type
-        """
-        url = self.url
-        params["key"] = self.key
-        self.log("{} : {}".format(url, params), level=2)
-        try:
-            # = requests.get(url, params=params, verify=False)
-            r = requests.post(url, data=params, verify=self.verify)
-        except ProtocolError:
-            print("Failed to send a rqequest.")
-            exit(1)
-        return r
-
-    def get_type(self):
-        """
-        Get the type of PANOS device using show system info
-
-        :param panos: PANOS device object
-        :return:
-        """
-        params = {
-            "type": "op",
-            "cmd": "<show><system><info></info></system></show>"
-        }
-        self.log("Sending: {}".format(params))
-
-        r = self.send(params)
-        if not self.check_resp(r):
-            print("Error on login received from PANOS: {}".format(r.text))
-            exit(1)
-
-        root = ElementTree.fromstring(r.content)
-        elem = root.findall("./result/system/model")
-        t = elem[0].text
-        type_result = self.get_type_from_info(t)
-        self.log("Show sys model:{} Inferred type: {}".format(t, type_result))
-        return type_result
-
-    def get_type_from_info(self, t):
-        for regex, result in self.type_switch.items():
-            if re.search(regex, t.lower()):
-                return result
-
-        return "panos"
-
-    def log(self, l, level=1):
-        if level <= self.log_level:
-            print(l)
-
-    def check_resp(self, r):
-        try:
-            root = ElementTree.fromstring(r.content)
-        except ParseError as e:
-            print(r.content)
-            print("{}".format(e))
-            exit(1)
-
-        status = root.attrib["status"]
-        if status == "success":
-            return True
-        else:
-            return False
 
 def create_context(config_var_file):
     # read the metafile to get variables and values
@@ -355,7 +231,6 @@ def push_skillets(args):
     else:
         addr = env_or_prompt("address", args, prompt_long="address or address:port of PANOS Device to configure: ")
         apikey = KEY_DB.lookup(addr)
-        print(apikey)
         if not apikey:
             user = env_or_prompt("username", args)
             pw = env_or_prompt("password", args, secret=True)
@@ -392,6 +267,7 @@ def main():
     repo_arg_group = parser.add_argument_group("Repository options")
     selection_options = parser.add_argument_group("Selection options")
     script_options = parser.add_argument_group("Script options")
+    kdb_options = parser.add_argument_group("Keystore options")
 
     repo_arg_group.add_argument('--repository', default="iron-skillet", metavar="repo_name", help="Name of skillet to use"
                         .format(", ".join(GIT_SKILLET_INDEX.keys())))
@@ -407,8 +283,8 @@ def main():
     script_options.add_argument("--username", help="Firewall/Panorama username. Can also use envvar SKCLI_USERNAME.")
     script_options.add_argument("--address", help="Firewall/Panorama address. Can also use envvar SKCLI_ADDRESS")
     script_options.add_argument("--password", help="Firewall/Panorama login password. Can also use envvar SKCLI_PASSWORD")
-    script_options.add_argument("--clear_keystore", help="Remove all stored apikeys.", action='store_true')
-
+    kdb_options.add_argument("--clear_keystore", help="Remove all stored apikeys.", action='store_true')
+    kdb_options.add_argument("--enable_keystore", help="Enable the storage of API keys.", action='store_true')
 
     selection_options.add_argument("--snippetstack", default="snippets", help="Snippet stack to use. ")
     selection_options.add_argument("--print_entries", help="Print not just the snippet names, but the entries within them.", action='store_true')
@@ -417,9 +293,15 @@ def main():
     args = parser.parse_args()
 
     if not args.validate:
+        print("""{}API keys will be saved, per device, at {}.{}""".format(
+            Fore.MAGENTA, KEY_DB.path, Style.RESET_ALL)
+        )
+        requests.packages.urllib3.disable_warnings()
+
+    if args.enable_keystore:
         print("""{}Warning: SSL validation is currently disabled. Use --validate to enable it.{}
         """.format(Fore.YELLOW, Style.RESET_ALL))
-        requests.packages.urllib3.disable_warnings()
+        KEY_DB.enable()
 
     if args.clear_keystore:
         KEY_DB.reinit()

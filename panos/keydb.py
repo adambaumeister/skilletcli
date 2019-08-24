@@ -9,8 +9,12 @@ class KeyDB:
     """
     def __init__(self, fn):
         self.filename = fn
+        self.enabled = False
         self.keys = {}
         self.get_creds_file()
+
+    def enable(self):
+        self.enabled = True
 
     def get_creds_file(self):
         filename = self.filename
@@ -30,11 +34,13 @@ class KeyDB:
             return self.keys[device]
 
     def add_key(self, device, key):
+        if not self.enabled:
+            return
         self.keys[device] = key
         fh = open(self.path, "w")
         json.dump(self.keys, fh)
         fh.close()
-        os.chmod(self.path, 400)
+        os.chmod(self.path, 0o400)
 
     def reinit(self):
         self.keys = {}
