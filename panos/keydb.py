@@ -6,6 +6,11 @@ import json
 class KeyDB:
     """
     Maintains a mapping of Device to Apikey in the users home directory.
+    Usage::
+        kdb = Keystore("filename")
+        kdb.enable()
+        kdb.add_key("index","apikey")
+        key = kdb.lookup("index")
     """
     def __init__(self, fn):
         self.filename = fn
@@ -14,9 +19,17 @@ class KeyDB:
         self.get_creds_file()
 
     def enable(self):
+        """
+        Enable the keystore for use.
+        """
         self.enabled = True
 
     def get_creds_file(self):
+        """
+        Get all keys from the credentials file.
+        Also configures this instance with all of the keys.
+        :return: (dict): Index: keys mapping
+        """
         filename = self.filename
 
         home = str(Path.home())
@@ -30,10 +43,20 @@ class KeyDB:
         return j
 
     def lookup(self, device):
+        """
+        Lookup a single key from the store by index
+        :param device: (string): Index
+        :return: Key value
+        """
         if device in self.keys:
             return self.keys[device]
 
     def add_key(self, device, key):
+        """
+        Add a single key to the store
+        :param device: (string): Index
+        :param key: (string): Key value
+        """
         if not self.enabled:
             return
         self.keys[device] = key
@@ -43,6 +66,10 @@ class KeyDB:
         os.chmod(self.path, 0o400)
 
     def reinit(self):
+        """
+        Obliterate all keys in the store and reset permissions.
+        Does not delete the keystore file.
+        """
         self.keys = {}
         fh = open(self.path, "w")
         json.dump(self.keys, fh)
