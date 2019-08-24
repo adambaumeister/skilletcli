@@ -63,7 +63,7 @@ class KeyDB:
         fh = open(self.path, "w")
         json.dump(self.keys, fh)
         fh.close()
-        os.chmod(self.path, 0o400)
+        os.chmod(self.path, 0o600)
 
     def reinit(self):
         """
@@ -74,4 +74,4 @@ class KeyDB:
         fh = open(self.path, "w")
         json.dump(self.keys, fh)
         fh.close()
-        os.chmod(self.path, 600)
+        os.chmod(self.path, 0o600)
