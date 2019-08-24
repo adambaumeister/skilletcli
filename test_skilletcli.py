@@ -120,6 +120,14 @@ def push_test(sc, test_stack, test_snippets):
 
 def test_get_creds_file():
     kd = KeyDB(CREDS_FILENAME)
+    kd.reinit()
+
+    kd.add_key("test_device", "notarealkey")
+    v = kd.lookup("test_device")
+    # Test if not enabled
+    assert v == None
+    kd.reinit()
+    kd.enable()
     kd.add_key("test_device", "notarealkey")
     v = kd.lookup("test_device")
     assert v == "notarealkey"
