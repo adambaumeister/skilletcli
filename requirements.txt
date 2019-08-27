@@ -6,3 +6,6 @@ passlib
 requests
 pytest
 google-cloud-firestore
+coverage
+coverage-badge
+pytest
