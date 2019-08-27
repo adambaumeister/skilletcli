@@ -24,6 +24,9 @@ Linux users can use their preferred package manager.
 ```bash
 command -v git ; if [[ $? != 0 ]] ; then echo "Git not installed." ; else curl -L https://github.com/adambaumeister/skilletcli/releases/latest/download/skilletcli -o skilletcli ; chmod +x skilletcli ; fi
 ```
+Note for mac users: Skilletcli is built on macOS 10.14. Newer/older builds may not be compatible and in that case, you need to run
+from source.
+
 **linux**
 ```bash
 command -v git ; if [[ $? != 0 ]] ; then echo "Git not installed." ; else curl -L https://github.com/adambaumeister/skilletcli/releases/latest/download/skilletcli -o skilletcli ; chmod +x skilletcli ; fi
@@ -33,10 +36,9 @@ command -v git ; if [[ $? != 0 ]] ; then echo "Git not installed." ; else curl -
 SkilletCLI requires a variable file to be populated before use.
 
 This file is used to template various snippets with environment specific information.
-By default, this file is named config_variables.yaml, and it is retrieved from whichever directory
-skilletcli is being run from.
+By default, this file is named config_variables.yaml, and it is retrieved from the current directory (_./config_variables.yml_)
 
-[click here to see a complete example, populated with default values](README.md)
+[click here to see a complete example, populated with default values](config_variables.yaml)
 
 If this file is not specified or is missing/unavailable, defaults will be used. 
 
@@ -147,7 +149,7 @@ After setting up the environment, simply run *pytest* as normal.
 
 Pytest is run automatically as part of CI using TravisCI whenever changes are detected to Master. CI only runs unit tests.
 
-## Test Coverage
+### Test Coverage
 After updating skcli, you can rerun the coverage tests and update the little icon using the below.
 ```bash
 coverage run --omit ./venv* -m pytest
