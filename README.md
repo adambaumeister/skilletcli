@@ -1,7 +1,8 @@
 
 ![skilletcli_icon](.github/icon.png)
 # SkilletCLI
-[![Build Status](https://travis-ci.org/adambaumeister/panfw-util.svg?branch=master)](https://travis-ci.org/adambaumeister/panfw-util)
+[![Build Status](https://travis-ci.org/adambaumeister/skilletcli.svg?branch=master)](https://travis-ci.org/adambaumeister/skilletcli)
+![coverage](.github/cov.svg)
 ## Overview
 This utility provides a command line interface to Palo Alto "skillets", 
 curated configuration templates designed to be imported into firewalls or Panorama.
@@ -145,6 +146,13 @@ as well as an additional env var: *SKCLI_DEVICE_TEST*.
 After setting up the environment, simply run *pytest* as normal.
 
 Pytest is run automatically as part of CI using TravisCI whenever changes are detected to Master. CI only runs unit tests.
+
+## Test Coverage
+After updating skcli, you can rerun the coverage tests and update the little icon using the below.
+```bash
+coverage run --omit ./venv* -m pytest
+coverage-badge -o .github/cov.svg
+```
 
 ### Packaging
 All packaging is done using pyinstaller, managed by Travis. Packaging occurs on the publish of a release
