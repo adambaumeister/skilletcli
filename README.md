@@ -1,3 +1,5 @@
+
+![skilletcli_icon](.github/icon.png)
 # SkilletCLI
 [![Build Status](https://travis-ci.org/adambaumeister/panfw-util.svg?branch=master)](https://travis-ci.org/adambaumeister/panfw-util)
 ## Overview
@@ -8,26 +10,23 @@ curated configuration templates designed to be imported into firewalls or Panora
 ### Pre-requisites
 To use skilletcli, a Git client must be installed.
 
-[Installers for windows/OSX can be found here](https://git-scm.com/)
+[Binaries for windows/OSX can be found here](https://git-scm.com/)
 
 Linux users can use their preferred package manager.
 
-### Experimental: HTTP-based skillet retrieval
-Skillets will eventually be hosted centrally, via a publicly accessible API.
-If you retrieve skillets this way, you do _not_ need a Git client.
-
-**At the moment, this functionality is still in dev, so use at your own risk.**
-
-To leverage this functionality add the flags --repotype and --repopath, as below.
-```bash
-skilletcli --repotype api --repopath https://skillet-deploy.appspot.com
-```
-
 ### Getting the code
-**windows/linux/OSX**
+**windows**
 
-The latest release can be found [in the releases page for this project](https://github.com/adambaumeister/skilletcli/releases).
-skilletCLI does not use an installer and runs using the one binary.
+[Download the latest release from the releases page.](https://github.com/adambaumeister/skilletcli/releases)
+
+**mac**
+```bash
+command -v git ; if [[ $? != 0 ]] ; then echo "Git not installed." ; else curl -L https://github.com/adambaumeister/skilletcli/releases/latest/download/skilletcli -o skilletcli ; chmod +x skilletcli ; fi
+```
+**linux**
+```bash
+command -v git ; if [[ $? != 0 ]] ; then echo "Git not installed." ; else curl -L https://github.com/adambaumeister/skilletcli/releases/latest/download/skilletcli -o skilletcli ; chmod +x skilletcli ; fi
+```
 
 ### Preparing the environment
 SkilletCLI requires a variable file to be populated before use.
@@ -94,6 +93,18 @@ The variables are:
 * SKCLI_USERNAME
 * SKCLI_PASSWORD
 * SKCLI_ADDRESS
+
+### Experimental: HTTP-based skillet retrieval
+Skillets will eventually be hosted centrally, via a publicly accessible API.
+If you retrieve skillets this way, you do _not_ need a Git client.
+
+**At the moment, this functionality is still in dev, so use at your own risk.**
+
+To leverage this functionality add the flags --repotype and --repopath, as below.
+```bash
+skilletcli --repotype api --repopath https://skillet-deploy.appspot.com
+```
+
 
 ## Developing SkilletCLI
 Contributing to SkilletCLI requires Python 3.6+ installed on your machine.
