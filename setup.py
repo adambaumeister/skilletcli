@@ -9,7 +9,7 @@ README = (HERE / "README.md").read_text()
 
 setup(
     name='skilletcli',
-    version='1.9.5',
+    version='1.9.6',
     packages=['Remotes', 'panos'],
     scripts=['skilletcli.py'],
     url='https://github.com/adambaumeister/skilletcli',
@@ -27,7 +27,6 @@ setup(
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
-        # Chose either "3 - Alpha", "4 - Beta" or "5 - Production/Stable" as the current state of your package
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
     ],
