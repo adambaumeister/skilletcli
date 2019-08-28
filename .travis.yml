@@ -50,13 +50,19 @@ matrix:
         - pyinstaller --onefile skilletcli.py
         - dir dist
       deploy:
-        provider: releases
-        api_key: $api_token
-        file:
-          - "dist/skilletcli.exe"
-        skip_cleanup: true
-        on:
-          tags: true
+        - provider: pypi
+          user: "abigserve"
+          password: $pypi_pw
+          on:
+            tags: true
+
+        - provider: releases
+          api_key: $api_token
+          file:
+            - "dist/skilletcli.exe"
+          skip_cleanup: true
+          on:
+            tags: true
 
 script: pytest
 install:

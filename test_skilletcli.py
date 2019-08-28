@@ -98,7 +98,7 @@ def push_test(sc, test_stack, test_snippets):
     addr = os.getenv("SKCLI_ADDRESS")
     user = os.getenv("SKCLI_USERNAME")
     pw = os.getenv("SKCLI_PASSWORD")
-    fw = Panos(addr, user, pw, debug=True)
+    fw = Panos(addr, user=user, pw=pw, debug=True)
 
     t = fw.get_type()
 

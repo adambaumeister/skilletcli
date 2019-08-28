@@ -157,5 +157,15 @@ coverage-badge -o .github/cov.svg
 ```
 
 ### Packaging
-All packaging is done using pyinstaller, managed by Travis. Packaging occurs on the publish of a release
+Binary packaging is done using pyinstaller, managed by Travis. Packaging occurs on the publish of a release
 (tag) on the master branch.  
+
+Pypi distribution is also handled via Travis on each tagged release. 
+
+Manual pypi packaging:
+```bash
+pip install setuptools wheel
+pip install twine
+python setup.py bdist bdist_wheel
+twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+```
