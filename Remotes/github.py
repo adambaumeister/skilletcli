@@ -111,26 +111,21 @@ class Git:
         # The following section is all hard coded pointers to important stuff #
         #   We expect all of these files in every skillet structure to work.  #
         template_dirs = [
-            self.path + os.sep + "templates"
+            self.path + os.sep + "templates",
+            self.path + os.sep,
         ]
-        snippet_dir_rx = "snippets.*"
+        snippet_dir_rx = "snippets|basic"
 
         # End static path definitions #
-
-        skillet_types = {}
         # Expects the following structure
         # root/SKILLET_TYPE/SNIPPET_DIR/
         # A SkilletColleciton will be created for each SKILLET_TYPE
         # Populated with every snippet from SKILLET_TYPE/SNIPPET_DIR/
         # For a SKILLET_TYPE directory to be complete, it MUST contain a meta file for each SNIPPET_DIR
 
-        # Here we pull all the SKILLET_TYPES
-        for template_dir in template_dirs:
-            for dir in os.listdir(template_dir):
-                fp = template_dir + os.sep + dir
-                if not os.path.isfile(fp):
-                    skillet_types[dir] = fp
-
+        template_dir = self.get_first_real_dir(template_dirs)
+        skillet_types = self.get_type_directories(template_dir)
+        print(skillet_types)
         sc = SkilletCollection(self.name)
         # Now we extract the SNIPPET_DIRS
         for name, fp in skillet_types.items():
@@ -139,6 +134,41 @@ class Git:
             sk.add_snippets(snippets)
 
         return sc
+
+    def get_type_directories(self, template_dir):
+        skillet_types = {}
+        for dir in os.listdir(template_dir):
+            fp = template_dir + os.sep + dir
+            if not os.path.isfile(fp):
+                # If dir is a valid type
+                if dir in ['panos', 'panorama']:
+                    skillet_types[dir] = fp
+                # Otherwise, if the directory is a snippet directory default to PANOS
+                elif self.is_snippet_dir(fp):
+                    skillet_types['panos'] = template_dir + os.sep
+
+        return skillet_types
+
+    def get_first_real_dir(self, template_dirs):
+        """
+        Given a list of directories, return the first directory that exists in the system
+        :param template_dirs (list): list of directories.
+        """
+        # Resolve the specified template directories to actual directories
+        for template_dir in template_dirs:
+            if os.path.isdir(template_dir):
+                return template_dir
+
+    def is_snippet_dir(self, fp):
+        """
+        Check if the directory at fp is a snippet directory
+        """
+        meta_file = fp + os.sep + ".meta-cnc.yaml"
+        print(meta_file)
+        if os.path.exists(meta_file):
+            return True
+
+        return False
 
     def get_snippets_in_dir(self, fp, snippet_dir_rx):
         snippet_dirs = {}

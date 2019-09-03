@@ -18,6 +18,16 @@ def g():
     g.clone("iron-skillet")
     return g
 
+@fixture
+def gps():
+    """
+    Another, different test fixture. This one used a different directory structure.
+    """
+    g = Git("https://github.com/PaloAltoNetworks/GPSkillets.git")
+    g.clone("gps")
+    g.branch("panos_v90")
+    return g
+
 def test_build(g):
     """
     Test a skillet build based on the fixture.
@@ -84,6 +94,9 @@ def test_gpskillet():
     test_snippets = ['all']
     push_test(sc, test_stack, test_snippets)
 
+def test_gpsskillet(gps):
+    sc = gps.build()
+
 def push_test(sc, test_stack, test_snippets):
     """
     Given a skillet collection, pushes all snippets and uses Assert to validate they work.
@@ -132,5 +145,27 @@ def test_get_creds_file():
     v = kd.lookup("test_device")
     assert v == "notarealkey"
 
+def test_get_first_real_dir(g, gps):
+    """
+    This test validates the function that searches for the template directory.
+    """
+    template_dirs = [
+        g.path + os.sep + "templates",
+        g.path + os.sep,
+    ]
+    template_dir = g.get_first_real_dir(template_dirs)
+    # First test should return templates
+    assert "templates" in template_dir
+    type_dirs = g.get_type_directories(template_dir)
+    print(type_dirs)
+
+    template_dirs = [
+        gps.path + os.sep + "templates",
+        gps.path + os.sep,
+    ]
+    r = gps.get_first_real_dir(template_dirs)
+    assert "gps" in r
+
+
 if __name__ == '__main__':
-    test_get_creds_file()
+    test_get_first_real_dir()
