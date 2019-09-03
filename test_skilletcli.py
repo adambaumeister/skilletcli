@@ -18,15 +18,28 @@ def g():
     g.clone("iron-skillet")
     return g
 
+
 @fixture
 def gps():
     """
-    Another, different test fixture. This one used a different directory structure.
+    Another, different test fixture. This one uses a different directory structure.
     """
     g = Git("https://github.com/PaloAltoNetworks/GPSkillets.git")
     g.clone("gps")
     g.branch("panos_v90")
     return g
+
+
+@fixture
+def hsk():
+    """
+    A third fixture with one more test structure.
+    """
+    g = Git("https://github.com/PaloAltoNetworks/HomeSkillet.git")
+    g.clone("hks")
+    g.branch("panos_v9.0")
+    return g
+
 
 def test_build(g):
     """
@@ -63,6 +76,28 @@ def test_select_entry(g):
 
     assert len(snippets) == 1
 
+def test_gpsskillet(gps):
+    """
+    Same as above but using the alt directory structure
+    """
+    sc = gps.build()
+    context = create_context("config_variables.yaml")
+    sk = sc.get_skillet("panos")
+    sk.template(context)
+    snippets = sk.select_snippets("basic", ["Rulebase"])
+    assert len(snippets) > 0
+
+def test_hskskillet(hsk):
+    """
+    Same as above but using the alt directory structure
+    """
+    sc = hsk.build()
+    context = create_context("config_variables.yaml")
+    sk = sc.get_skillet("panos")
+    sk.template(context)
+    snippets = sk.select_snippets("HomeSkillet_base", ["address"])
+    assert len(snippets) > 0
+
 def test_type_switch():
     """
     Test the PANOS type identification.
@@ -94,8 +129,6 @@ def test_gpskillet():
     test_snippets = ['all']
     push_test(sc, test_stack, test_snippets)
 
-def test_gpsskillet(gps):
-    sc = gps.build()
 
 def push_test(sc, test_stack, test_snippets):
     """

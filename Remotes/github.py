@@ -125,7 +125,6 @@ class Git:
 
         template_dir = self.get_first_real_dir(template_dirs)
         skillet_types = self.get_type_directories(template_dir)
-        print(skillet_types)
         sc = SkilletCollection(self.name)
         # Now we extract the SNIPPET_DIRS
         for name, fp in skillet_types.items():
@@ -164,7 +163,6 @@ class Git:
         Check if the directory at fp is a snippet directory
         """
         meta_file = fp + os.sep + ".meta-cnc.yaml"
-        print(meta_file)
         if os.path.exists(meta_file):
             return True
 
