@@ -1,4 +1,4 @@
-from Remotes import Git
+from Remotes import Git, Github
 from skilletcli import create_context, set_at_path, check_resp, CREDS_FILENAME
 from panos import KeyDB
 from pytest import fixture
@@ -199,6 +199,10 @@ def test_get_first_real_dir(g, gps):
     r = gps.get_first_real_dir(template_dirs)
     assert "gps" in r
 
+def test_github():
+    g = Github()
+    r = g.index()
+    print(r)
 
 if __name__ == '__main__':
     test_get_first_real_dir()

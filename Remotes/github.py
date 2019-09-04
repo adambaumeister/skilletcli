@@ -4,12 +4,40 @@ import re
 from .skillet import *
 import oyaml
 from colorama import Fore, Back, Style
+import requests
 
 def on_rm_error( func, path, exc_info):
     # path contains the path of the file that couldn't be removed
     # let's just assume that it's read-only and unlink it.
     os.chmod(path, stat.S_IWRITE)
     os.unlink(path)
+
+class Github:
+    """
+    Github remote
+    Github provides a wrapper to Git instances and provides indexing/search methods.
+    """
+    def __init__(self, topic="skillets", user="PaloAltoNetworks"):
+        self.url = "https://api.github.com"
+        self.topic = topic
+        self.user = user
+        self.search_endpoint = "/search/repositories"
+
+    def index(self):
+        r = requests.get(self.url + self.search_endpoint, params="q=topic:{}+user:{}".format(self.topic, self.user))
+        j = r.json()
+        self.check_resp(j)
+
+        repos = []
+        for item in j['items']:
+            repos[item['name']] = Git(item['https://github.com/PaloAltoNetworks/iron-skillet.git'])
+
+        return repos
+
+    def check_resp(self, j):
+        if "errors" in j:
+            if len(j["errors"]) > 0:
+                raise RuntimeError("Github API Call failed! Github err: {}".format(j["message"]))
 
 class Git:
     """
