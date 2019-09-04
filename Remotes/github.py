@@ -129,7 +129,7 @@ class Git:
         # Now we extract the SNIPPET_DIRS
         for name, fp in skillet_types.items():
             sk = sc.new_skillet(name, name, ".*")
-            snippets = self.get_snippets_in_dir(fp, snippet_dir_rx)
+            snippets = self.get_snippets_in_dir(fp)
             sk.add_snippets(snippets)
 
         return sc
@@ -168,18 +168,21 @@ class Git:
 
         return False
 
-    def get_snippets_in_dir(self, fp, snippet_dir_rx):
+    def get_snippets_in_dir(self, fp):
         snippet_dirs = {}
+
         for dir in os.listdir(fp):
             if not os.path.isfile(dir):
-                if re.search(snippet_dir_rx, dir):
+                if self.is_snippet_dir(fp + os.sep + dir):
                     snippet_dirs[dir] = fp + os.sep + dir
 
         snippets_map = {}
         for dir_name, snippet_dir in snippet_dirs.items():
             meta_file = snippet_dir + os.sep + ".meta-cnc.yaml"
             if os.path.isfile(meta_file):
-                snippets_map[dir_name] = self.snippets_from_metafile(meta_file)
+                snippets = self.snippets_from_metafile(meta_file)
+                if len(snippets) > 0:
+                    snippets_map[dir_name] = snippets
 
         return snippets_map
 
@@ -190,10 +193,12 @@ class Git:
             raise ValueError("Malformed metadata file: {}. Missing snippet definition.".format(meta_file))
 
         snippets = []
+
         for snippet_def in metadata["snippets"]:
-            snippet_file = rel_dir + os.sep + snippet_def["file"]
-            snippet_xpath = snippet_def["xpath"]
-            if os.path.isfile(snippet_file):
+            # This validates the snippet metadata contains all the required information
+            if self.validate_snippet_meta(snippet_def, rel_dir):
+                snippet_file = rel_dir + os.sep + snippet_def["file"]
+                snippet_xpath = snippet_def["xpath"]
                 xmlstr = open(snippet_file).read()
                 s = Snippet(snippet_xpath, xmlstr)
                 s.name = snippet_def["name"]
@@ -206,6 +211,20 @@ class Git:
         self.path = path
         self.Repo = "local"
         return self.build()
+
+    def validate_snippet_meta(self, snippet_def, rel_dir):
+        snippet_fields = ["file", "xpath"]
+        # Validate all the required fields are there
+        for sf in snippet_fields:
+            if sf not in snippet_def:
+                return False
+
+        # Validate the values are valid
+        snippet_file = rel_dir + os.sep + snippet_def["file"]
+        if not os.path.isfile(snippet_file):
+            return False
+
+        return True
 
 def check_git_exists():
     return shutil.which("git")
