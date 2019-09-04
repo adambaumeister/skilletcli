@@ -203,9 +203,14 @@ def test_get_first_real_dir(g, gps):
 def test_github():
     g = Github()
     r = g.index()
+    assert len(r) >= 1
 
 def test_all_github_repos():
-    branches = ['master', 'panos_v90', 'panos_v9.0']
+    """
+    This test function retrieves all of the skillets marked with the "skillets" topic from github
+    It then clones them, and validates it can retrieve their snippets.
+    """
+    branches = ['master', 'panos_v90', 'panos_v9.0', 'panos_v8.1', 'panos_v81']
     counts = {}
     github = Github()
     repos = github.index()
@@ -217,7 +222,9 @@ def test_all_github_repos():
         else:
             counts[g.name] = sk.snippet_stack.keys()
 
-    print(counts)
+    assert len(counts['iron-skillet']) > 0
+    assert len(counts['HomeSkillet']) > 0
+    assert len(counts['GPSkillets']) > 0
 
 def try_all_branches(g, branches):
     for branch in branches:
