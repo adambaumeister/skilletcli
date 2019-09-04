@@ -30,7 +30,7 @@ class Github:
 
         repos = []
         for i in j['items']:
-            g = Git(i['clone_url'])
+            g = Git(i['clone_url'], github_info=i)
             repos.append(g)
 
         return repos
@@ -46,16 +46,19 @@ class Git:
 
     This class provides an interface to Github repositories containing Skillets or XML snippets.
     """
-    def __init__(self, repo_url, store=os.getcwd()):
+    def __init__(self, repo_url, store=os.getcwd(), github_info=None):
         """
         Initilize a new Git repo object
         :param repo_url: URL path to repository.
         :param store: Directory to store repository in. Defaults to the current directory.
+        :param github_info: (dict): All information as sourced from Github
         """
         if not check_git_exists():
             print("A git client is required to use this repository.")
             print("See README.md for more details.")
             exit(1)
+
+        self.github_info = github_info
         self.repo_url = repo_url
         self.store = store
         self.Repo = None

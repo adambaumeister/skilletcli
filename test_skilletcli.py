@@ -5,6 +5,7 @@ from pytest import fixture
 from skilletcli import Panos
 import os
 import pytest
+from git import GitCommandError
 from pathlib import Path
 
 
@@ -202,7 +203,34 @@ def test_get_first_real_dir(g, gps):
 def test_github():
     g = Github()
     r = g.index()
-    print(r)
+
+def test_all_github_repos():
+    branches = ['master', 'panos_v90', 'panos_v9.0']
+    counts = {}
+    github = Github()
+    repos = github.index()
+    for g in repos:
+        g.clone(g.github_info['name'])
+        sk = try_all_branches(g, branches)
+        if not sk:
+            counts[g.name] = 0
+        else:
+            counts[g.name] = sk.snippet_stack.keys()
+
+    print(counts)
+
+def try_all_branches(g, branches):
+    for branch in branches:
+        try:
+            g.branch(branch)
+            sc = g.build()
+            sk = sc.get_skillet("panos")
+            # If it works, return it
+            return sk
+        except ValueError:
+            print("Invalid branch {}:{} - no valid panos objects".format(g.name,branch))
+        except GitCommandError:
+            print("Invalid branch {}:{} - branch does not exist".format(g.name,branch))
 
 if __name__ == '__main__':
     test_get_first_real_dir()
