@@ -29,8 +29,9 @@ class Github:
         self.check_resp(j)
 
         repos = []
-        for item in j['items']:
-            repos[item['name']] = Git(item['https://github.com/PaloAltoNetworks/iron-skillet.git'])
+        for i in j['items']:
+            g = Git(i['clone_url'])
+            repos.append(g)
 
         return repos
 
@@ -154,11 +155,15 @@ class Git:
         template_dir = self.get_first_real_dir(template_dirs)
         skillet_types = self.get_type_directories(template_dir)
         sc = SkilletCollection(self.name)
-        # Now we extract the SNIPPET_DIRS
+
+        # This splits all the snippet directories into SnippetStack instances.
+        # It uses the metadata 'type' to then add them to the correct skillet (usually 'panos' or 'panorama')
         for name, fp in skillet_types.items():
-            sk = sc.new_skillet(name, name, ".*")
-            snippets = self.get_snippets_in_dir(fp)
-            sk.add_snippets(snippets)
+            snippet_stacks = self.get_snippets_in_dir(fp)
+            for ss_name, ss in snippet_stacks.items():
+                t = ss.metadata['type']
+                sk = sc.new_skillet(t, t, ".*")
+                sk.add_snippets(snippet_stacks)
 
         return sc
 
@@ -208,9 +213,11 @@ class Git:
         for dir_name, snippet_dir in snippet_dirs.items():
             meta_file = snippet_dir + os.sep + ".meta-cnc.yaml"
             if os.path.isfile(meta_file):
+                metadata = oyaml.safe_load(open(meta_file).read())
                 snippets = self.snippets_from_metafile(meta_file)
                 if len(snippets) > 0:
-                    snippets_map[dir_name] = snippets
+                    ss = SnippetStack(snippets, metadata)
+                    snippets_map[dir_name] = ss
 
         return snippets_map
 
