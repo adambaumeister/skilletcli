@@ -18,6 +18,9 @@ class SkilletCollection:
         return
 
     def new_skillet(self, skillet_name, skillet_type, supported_versions):
+        if skillet_name in self.skillet_map:
+            return self.skillet_map[skillet_name]
+
         s = Skillet(skillet_name, skillet_type, supported_versions)
         self.skillet_map[skillet_name] = s
         return s
@@ -49,27 +52,31 @@ class Skillet:
     def add_snippets(self, snippets):
         self.snippet_stack = snippets
 
+    def add_snippet_stacks(self, stacks):
+        for ss_name, ss in stacks.items():
+            self.snippet_stack[ss_name] = ss
+
     def get_snippets(self):
         return self.snippet_stack
 
     def print_all_snippets(self, elements=True):
-        for name, snippets in self.snippet_stack.items():
+        for name, snippetstack in self.snippet_stack.items():
             print("  " + name)
-            for snippet in snippets:
+            for snippet in snippetstack.snippets:
                 print("    " + snippet.name)
                 if elements:
                     snippet.print_entries()
 
     def template(self, context):
-        for name, snippets in self.snippet_stack.items():
-            for snippet in snippets:
+        for name, snippetstack in self.snippet_stack.items():
+            for snippet in snippetstack.snippets:
                 snippet.template(context)
 
     def select_snippets(self, stack_name, names):
         r = []
         # Keep in the order the user specified at the commandline
         if "all" in names:
-            return self.snippet_stack[stack_name]
+            return self.snippet_stack[stack_name].snippets
 
         for nameentry in names:
             vals = nameentry.split("/")
@@ -78,7 +85,7 @@ class Skillet:
             if len(vals) > 1:
                 entry_name = vals[1]
 
-            for snippet in self.snippet_stack[stack_name]:
+            for snippet in self.snippet_stack[stack_name].snippets:
                 if snippet.name == name:
                     snippet.select_entry(entry_name)
                     s = self.split_snippet(snippet)
@@ -120,6 +127,15 @@ class Skillet:
             new_snippets.append(s)
 
         return new_snippets
+
+class SnippetStack:
+    """
+    Represents a "stack" of snippets, a logical grouping of configuration snippets within a skillet.
+    """
+    def __init__(self, snippets, metadata):
+        self.snippets = snippets
+        self.metadata = metadata
+
 
 class Snippet:
     """

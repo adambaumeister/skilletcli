@@ -1,10 +1,11 @@
-from Remotes import Git
+from Remotes import Git, Github
 from skilletcli import create_context, set_at_path, check_resp, CREDS_FILENAME
 from panos import KeyDB
 from pytest import fixture
 from skilletcli import Panos
 import os
 import pytest
+from git import GitCommandError
 from pathlib import Path
 
 
@@ -17,6 +18,29 @@ def g():
     g = Git("https://github.com/PaloAltoNetworks/iron-skillet.git")
     g.clone("iron-skillet")
     return g
+
+
+@fixture
+def gps():
+    """
+    Another, different test fixture. This one uses a different directory structure.
+    """
+    g = Git("https://github.com/PaloAltoNetworks/GPSkillets.git")
+    g.clone("gps")
+    g.branch("panos_v90")
+    return g
+
+
+@fixture
+def hsk():
+    """
+    A third fixture with one more test structure.
+    """
+    g = Git("https://github.com/PaloAltoNetworks/HomeSkillet.git")
+    g.clone("hks")
+    g.branch("panos_v9.0")
+    return g
+
 
 def test_build(g):
     """
@@ -53,6 +77,28 @@ def test_select_entry(g):
 
     assert len(snippets) == 1
 
+def test_gpsskillet(gps):
+    """
+    Same as above but using the alt directory structure
+    """
+    sc = gps.build()
+    context = create_context("config_variables.yaml")
+    sk = sc.get_skillet("panos")
+    sk.template(context)
+    snippets = sk.select_snippets("basic", ["Rulebase"])
+    assert len(snippets) > 0
+
+def test_hskskillet(hsk):
+    """
+    Same as above but using the alt directory structure
+    """
+    sc = hsk.build()
+    context = create_context("config_variables.yaml")
+    sk = sc.get_skillet("panos")
+    sk.template(context)
+    snippets = sk.select_snippets("HomeSkillet_base", ["address"])
+    assert len(snippets) > 0
+
 def test_type_switch():
     """
     Test the PANOS type identification.
@@ -83,6 +129,7 @@ def test_gpskillet():
     test_stack = 'snippets'
     test_snippets = ['all']
     push_test(sc, test_stack, test_snippets)
+
 
 def push_test(sc, test_stack, test_snippets):
     """
@@ -132,5 +179,65 @@ def test_get_creds_file():
     v = kd.lookup("test_device")
     assert v == "notarealkey"
 
+def test_get_first_real_dir(g, gps):
+    """
+    This test validates the function that searches for the template directory.
+    """
+    template_dirs = [
+        g.path + os.sep + "templates",
+        g.path + os.sep,
+    ]
+    template_dir = g.get_first_real_dir(template_dirs)
+    # First test should return templates
+    assert "templates" in template_dir
+    type_dirs = g.get_type_directories(template_dir)
+    print(type_dirs)
+
+    template_dirs = [
+        gps.path + os.sep + "templates",
+        gps.path + os.sep,
+    ]
+    r = gps.get_first_real_dir(template_dirs)
+    assert "gps" in r
+
+def test_github():
+    g = Github()
+    r = g.index()
+    assert len(r) >= 1
+
+def test_all_github_repos():
+    """
+    This test function retrieves all of the skillets marked with the "skillets" topic from github
+    It then clones them, and validates it can retrieve their snippets.
+    """
+    branches = ['master', 'panos_v90', 'panos_v9.0', 'panos_v8.1', 'panos_v81']
+    counts = {}
+    github = Github()
+    repos = github.index()
+    for g in repos:
+        g.clone(g.github_info['name'])
+        sk = try_all_branches(g, branches)
+        if not sk:
+            counts[g.name] = 0
+        else:
+            counts[g.name] = sk.snippet_stack.keys()
+
+    assert len(counts['iron-skillet']) > 0
+    assert len(counts['HomeSkillet']) > 0
+    assert len(counts['GPSkillets']) > 0
+
+def try_all_branches(g, branches):
+    for branch in branches:
+        try:
+            g.branch(branch)
+            sc = g.build()
+            sk = sc.get_skillet("panos")
+            # If it works, return it
+            return sk
+        except ValueError:
+            print("Invalid branch {}:{} - no valid panos objects".format(g.name,branch))
+        except GitCommandError:
+            print("Invalid branch {}:{} - branch does not exist".format(g.name,branch))
+
 if __name__ == '__main__':
-    test_get_creds_file()
+    test_get_first_real_dir()
