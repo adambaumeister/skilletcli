@@ -9,3 +9,4 @@ google-cloud-firestore
 coverage
 coverage-badge
 pytest
+beautifultable
