@@ -10,7 +10,7 @@ class Gcloud():
     def __init__(self, url):
         self.url = url
 
-    def Query(self, skillet_name, type, stack, snippet_names, context):
+    def Query(self, skillet_name, type, stack, snippet_names, major_version, context):
         """
         Query the skillet API.
         :param skillet_name: Name of skillet, such as iron-skillet, to query
@@ -18,6 +18,7 @@ class Gcloud():
         :param stack: Stack to retrieve snippets from (snippets)
         :param snippet_names: List of snippets to retrieve
         :param context: Template variables
+        :param panos_version:
         :return: List of Snippet instances.
         """
         QUERY = {
@@ -26,6 +27,7 @@ class Gcloud():
                 "name": snippet_names,
                 "type": type,
                 "stack": stack,
+                "panos_version": major_version,
             },
             "template_variables": context
         }
@@ -50,6 +52,10 @@ class Gcloud():
 
         qs = "&".join(params)
 
-        res = requests.get(self.url + "/snippet?skillet={}&{}".format(skillet_name, qs))
+        if len(params) > 0:
+            res = requests.get(self.url + "/snippet?skillet={}&{}".format(skillet_name, qs))
+        else:
+            res = requests.get(self.url + "/snippet?skillet={}&{}".format(skillet_name, qs))
+
         j = res.json()
         return j

@@ -173,7 +173,7 @@ def push_from_gcloud(args):
     if len(args.snippetnames) == 0:
         print("{}New: browse the available objects via SkilletCloud: https://skilletcloud-prod.appspot.com/skillets/{}{}".format(
             Fore.GREEN, args.repository, Style.RESET_ALL))
-        snippets = gc.List(args.repository, stack=args.snippetstack)
+        snippets = gc.List(args.repository)
         names = set()
         for s in snippets:
             names.add(s['name'])
@@ -195,9 +195,10 @@ def push_from_gcloud(args):
         fw = Panos(addr, apikey=apikey, debug=args.debug, verify=args.validate)
 
     t = fw.get_type()
+    v = fw.get_version()
 
     context = create_context(args.config)
-    snippets = gc.Query(args.repository, t, args.snippetstack, args.snippetnames, context)
+    snippets = gc.Query(args.repository, t, args.snippetstack, args.snippetnames, v, context)
 
     if len(snippets) == 0:
         print("{}Snippets {} not found for device type {}.{}".format(Fore.RED, ",".join(args.snippetnames), t,
@@ -309,8 +310,7 @@ def main():
     args = parser.parse_args()
 
     if not args.validate:
-        print("""{}Warning: SSL validation is currently disabled. Use --validate to enable it.{}
-        """.format(Fore.YELLOW, Style.RESET_ALL))
+        print("""{}Warning: SSL validation of PANOS device is currently disabled. Use --validate to enable it.{}""".format(Fore.YELLOW, Style.RESET_ALL))
         requests.packages.urllib3.disable_warnings()
 
     if args.enable_keystore:

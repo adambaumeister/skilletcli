@@ -96,12 +96,27 @@ class Panos:
             print("Error on login received from PANOS: {}".format(r.text))
             exit(1)
 
+        self.log(r.content)
         root = ElementTree.fromstring(r.content)
+
+        # Get the device type
         elem = root.findall("./result/system/model")
         t = elem[0].text
         type_result = self.get_type_from_info(t)
-        self.log("Show sys model:{} Inferred type: {}".format(t, type_result))
+
+        # Get the device version
+        elem = root.findall("./result/system/sw-version")
+        self.sw_version = elem[0].text
+        self.major_sw_version = ".".join(self.sw_version.split(".")[0:2])
+        self.log("Device details: {}:{} {} {}".format(type_result, t, self.sw_version, self.major_sw_version))
+
         return type_result
+
+    def get_version(self):
+        if not self.major_sw_version:
+            self.get_type()
+
+        return self.major_sw_version
 
     def get_type_from_info(self, t):
         for regex, result in self.type_switch.items():
