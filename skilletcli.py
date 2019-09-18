@@ -30,6 +30,7 @@ Usage:
     python create_and_push.py snippetname1 snippetname2 
     Push the listed snippetnames
 """
+
 # Index of git based skillet repositories
 GIT_SKILLET_INDEX = {
     "iron-skillet": "https://github.com/PaloAltoNetworks/iron-skillet.git"
@@ -37,6 +38,8 @@ GIT_SKILLET_INDEX = {
 # SKCLI credentials cache
 CREDS_FILENAME = ".skcli.json"
 KEY_DB = KeyDB(CREDS_FILENAME)
+# API
+DEFAULT_API_URL = "https://api-dot-skilletcloud-prod.appspot.com"
 
 def create_context(config_var_file):
     # read the metafile to get variables and values
@@ -160,7 +163,25 @@ def push_from_gcloud(args):
     Pull snippets from Gcloud instead of Git repos.
     :param args: parsed args from argparse
     """
-    print("{}Note: retrieval of snippets from webapi is currently experimental. Use with caution!{}".format(Fore.RED, Style.RESET_ALL))
+    if args.repopath:
+        api_url = args.repopath
+    else:
+        api_url = DEFAULT_API_URL
+
+    gc = Gcloud(api_url)
+
+    if len(args.snippetnames) == 0:
+        print("{}New: browse the available objects via SkilletCloud: https://skilletcloud-prod.appspot.com/skillets/{}{}".format(
+            Fore.GREEN, args.repository, Style.RESET_ALL))
+        snippets = gc.List(args.repository, stack=args.snippetstack)
+        names = set()
+        for s in snippets:
+            names.add(s['name'])
+
+        for n in names:
+            print(n)
+
+        sys.exit(0)
 
     # Address must be passed, then lookup keystore if it exists.
     addr = env_or_prompt("address", args, prompt_long="address or address:port of PANOS Device to configure: ")
@@ -174,16 +195,9 @@ def push_from_gcloud(args):
         fw = Panos(addr, apikey=apikey, debug=args.debug, verify=args.validate)
 
     t = fw.get_type()
-    gc = Gcloud(args.repopath)
+
     context = create_context(args.config)
     snippets = gc.Query(args.repository, t, args.snippetstack, args.snippetnames, context)
-
-    if len(args.snippetnames) == 0:
-        print("printing available {} snippets for type {} in stack {}".format(args.repository, t, args.snippetstack))
-        snippet_names = gc.List(args.repository, t, args.snippetstack)
-        for sn in snippet_names:
-            print(sn)
-        sys.exit(0)
 
     if len(snippets) == 0:
         print("{}Snippets {} not found for device type {}.{}".format(Fore.RED, ",".join(args.snippetnames), t,
