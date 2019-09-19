@@ -24,6 +24,7 @@ setup(
         "jinja2",
         "passlib",
         "requests",
+        "beautifultable",
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',

@@ -14,8 +14,9 @@ import re
 from colorama import Fore, Back, Style
 import getpass
 import argparse
-from Remotes import Git, Gcloud
+from Remotes import Git, Gcloud, Github
 import json
+from beautifultable import BeautifulTable
 
 """
 Create-and-push
@@ -214,23 +215,45 @@ def push_skillets(args):
     :param args: parsed args from argparse
     """
     if args.repotype == "git":
-        if args.repository not in GIT_SKILLET_INDEX:
-            if not args.repopath:
-                print("Non-registered skillet. --repopath [git url] is required.")
-                exit(1)
-
-            repo_url = args.repopath
+        github = Github()
+        repo_list = github.index()
+        repo_url ='unset'
+        repo_table = BeautifulTable()
+        repo_table.set_style(BeautifulTable.STYLE_NONE)
+        repo_table.column_headers = ['Repository Name', 'Description']
+        repo_table.column_alignments['Repository Name'] = BeautifulTable.ALIGN_LEFT
+        repo_table.column_alignments['Description'] = BeautifulTable.ALIGN_LEFT
+        repo_table.left_padding_widths['Description'] = 1
+        repo_table.header_separator_char = '-'
+        if args.repository is None:
+            print('Available Repositories are:')
+            for repo in repo_list:
+                repo_table.append_row([repo.github_info['name'],repo.github_info['description']])
+            print(repo_table)
+            exit()
         else:
-            repo_url = GIT_SKILLET_INDEX[args.repository]
-
+            for repo in repo_list:
+                if repo.github_info['name'] == args.repository:
+                    repo_url = repo.github_info['clone_url']
+                    break
+            if repo_url is 'unset':
+                print('Invalid Repository was specified. Available Repositories are:')
+                for repo in repo_list:
+                    repo_table.append_row([repo.github_info['name'],repo.github_info['description']])
+                print(repo_table)
+                exit()
         repo_name = args.repository
         g = Git(repo_url)
         g.clone(repo_name, ow=args.refresh, update=args.update)
-        if args.branch:
-            if args.branch == "list":
-                print("\n".join(g.list_branches()))
-                exit()
-            g.branch(args.branch)
+        if args.branch is None:
+            print("Branches available for "+args.repository+" are :")
+            print("\n".join(g.list_branches()))
+            exit()
+        elif args.branch not in g.list_branches():
+            print("Invalid Branch was choosen. Please select from below list:")
+            print("\n".join(g.list_branches()))
+            exit()
+        g.branch(args.branch)
 
         sc = g.build()
     elif args.repotype == "local":
@@ -286,10 +309,9 @@ def main():
     script_options = parser.add_argument_group("Script options")
     kdb_options = parser.add_argument_group("Keystore options")
 
-    repo_arg_group.add_argument('--repository', default="iron-skillet", metavar="repo_name", help="Name of skillet to use"
-                        .format(", ".join(GIT_SKILLET_INDEX.keys())))
+    repo_arg_group.add_argument('--repository', default="iron-skillet", help="Name of skillet to use. Use without a value to see list of all available repositories.", nargs='?')
     repo_arg_group.add_argument('--repotype', default="git", help="Type of skillet repo. Available options are [git, api, local]")
-    repo_arg_group.add_argument("--branch", help="Git repo branch to use. Use 'list' to view available branches.")
+    repo_arg_group.add_argument("--branch", default='master',help="Git repo branch to use. Use without a value to view all available branches.",nargs='?')
     repo_arg_group.add_argument('--repopath', help="Path to repository if using local repo type")
     repo_arg_group.add_argument("--refresh", help="Refresh the cloned repository directory.", action='store_true')
     repo_arg_group.add_argument("--update", help="Update the cloned repository", action='store_true')
