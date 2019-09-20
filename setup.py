@@ -9,7 +9,7 @@ README = (HERE / "README.md").read_text()
 
 setup(
     name='skilletcli',
-    version='1.9.9',
+    version='2.0.0',
     packages=['Remotes', 'panos'],
     scripts=['skilletcli.py'],
     url='https://github.com/adambaumeister/skilletcli',
@@ -24,6 +24,7 @@ setup(
         "jinja2",
         "passlib",
         "requests",
+        "beautifultable",
     ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',

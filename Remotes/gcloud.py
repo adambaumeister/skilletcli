@@ -5,12 +5,19 @@ class Gcloud():
     """
     Remote skillet retrieval from Gcloud based API
 
-    This class is for client-side utilties.
+    Usage::
+        # Query for a specific snippet
+        from Remotes import Gcloud
+        gc = Gcloud(https://api-dot-skilletcloud-prod.appspot.com)
+        gc.Query('iron-skillet', 'panos', 'snippets', ['tag'], '9.0', {})
+
+        # List all snippets
+        json_data = gc.List('iron-skillet')
     """
     def __init__(self, url):
         self.url = url
 
-    def Query(self, skillet_name, type, stack, snippet_names, context):
+    def Query(self, skillet_name, type, stack, snippet_names, major_version, context):
         """
         Query the skillet API.
         :param skillet_name: Name of skillet, such as iron-skillet, to query
@@ -18,6 +25,7 @@ class Gcloud():
         :param stack: Stack to retrieve snippets from (snippets)
         :param snippet_names: List of snippets to retrieve
         :param context: Template variables
+        :param panos_version:
         :return: List of Snippet instances.
         """
         QUERY = {
@@ -26,6 +34,7 @@ class Gcloud():
                 "name": snippet_names,
                 "type": type,
                 "stack": stack,
+                "panos_version": major_version,
             },
             "template_variables": context
         }
@@ -43,7 +52,24 @@ class Gcloud():
 
         return snippets
 
-    def List(self, skillet_name, t, stack_name):
-        res = requests.get(self.url + "/snippet?skillet={}&stack={}&type={}".format(skillet_name, stack_name, t))
+    def List(self, skillet_name, **kwargs):
+        """
+        List all snippets in a Skillet as JSON.
+
+        :param skillet_name: Skillet to query
+        :param kwargs: Key/value filters to append to filter.
+        :return: Json representation of snippets
+        """
+        params = []
+        for k,v in kwargs.items():
+            params.append('{}={}'.format(k,v))
+
+        qs = "&".join(params)
+
+        if len(params) > 0:
+            res = requests.get(self.url + "/snippet?skillet={}&{}".format(skillet_name, qs))
+        else:
+            res = requests.get(self.url + "/snippet?skillet={}&{}".format(skillet_name, qs))
+
         j = res.json()
         return j

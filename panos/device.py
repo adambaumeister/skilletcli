@@ -5,7 +5,9 @@ import requests
 import re
 class Panos:
     """
-    PANOS Device. Could be a firewall or PANORAMA.
+    PANOS Device class.
+
+    Represents either a firewall or panorama and provides a minimal interface to run commands.
     """
     def __init__(self, addr, apikey=None, user="admin", pw=None, connect=True, debug=False, verify=False):
         """
@@ -64,7 +66,7 @@ class Panos:
     def send(self, params):
         """
         Send a request to this PANOS device
-        :param params: dict: GET parameters for query ({ "type": "op" })
+        :param params: dict: POST parameters for query ({ "type": "op" })
         :return: GET Response type
         """
         url = self.url
@@ -96,12 +98,27 @@ class Panos:
             print("Error on login received from PANOS: {}".format(r.text))
             exit(1)
 
+        self.log(r.content)
         root = ElementTree.fromstring(r.content)
+
+        # Get the device type
         elem = root.findall("./result/system/model")
         t = elem[0].text
         type_result = self.get_type_from_info(t)
-        self.log("Show sys model:{} Inferred type: {}".format(t, type_result))
+
+        # Get the device version
+        elem = root.findall("./result/system/sw-version")
+        self.sw_version = elem[0].text
+        self.major_sw_version = ".".join(self.sw_version.split(".")[0:2])
+        self.log("Device details: {}:{} {} {}".format(type_result, t, self.sw_version, self.major_sw_version))
+
         return type_result
+
+    def get_version(self):
+        if not self.major_sw_version:
+            self.get_type()
+
+        return self.major_sw_version
 
     def get_type_from_info(self, t):
         for regex, result in self.type_switch.items():

@@ -16,6 +16,11 @@ class Github:
     """
     Github remote
     Github provides a wrapper to Git instances and provides indexing/search methods.
+
+    Usage::
+        from Remotes import github
+        g = Github()
+        repos = g.index()
     """
     def __init__(self, topic="skillets", user="PaloAltoNetworks"):
         self.url = "https://api.github.com"
@@ -24,6 +29,10 @@ class Github:
         self.search_endpoint = "/search/repositories"
 
     def index(self):
+        """
+        Retrieves the list of repositories as a list of Git instances.
+        :return: [ Github.Git ]
+        """
         r = requests.get(self.url + self.search_endpoint, params="q=topic:{}+user:{}".format(self.topic, self.user))
         j = r.json()
         self.check_resp(j)
@@ -51,7 +60,8 @@ class Git:
         Initilize a new Git repo object
         :param repo_url: URL path to repository.
         :param store: Directory to store repository in. Defaults to the current directory.
-        :param github_info: (dict): All information as sourced from Github
+        :param github_info: (dict): If this object is initialized by the Github class, all the repo attributes from
+        Github
         """
         if not check_git_exists():
             print("A git client is required to use this repository.")
@@ -70,7 +80,7 @@ class Git:
         Clone a remote directory into the store.
         :param name: Name of repository
         :param ow: OverWrite, bool, if True will remove any existing directory in the location.
-        :return:
+        :return: (string): Path to cloned repository
         """
         if not name:
             raise ValueError("Missing or bad name passed to Clone command.")
@@ -110,6 +120,7 @@ class Git:
     def branch(self, branch_name):
         """
         Checkout the specified branch.
+
         :param branch_name: Branch to checkout.
         :return: None
         """
@@ -135,7 +146,10 @@ class Git:
     def build(self):
         """
         Build the Skillet object using the git repository.
-        :return:
+
+        Must be called after clone.
+
+        :return: SkilletCollection instance
         """
         if not self.Repo:
             self.clone(self.name)

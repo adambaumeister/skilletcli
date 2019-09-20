@@ -14,29 +14,22 @@ import re
 from colorama import Fore, Back, Style
 import getpass
 import argparse
-from Remotes import Git, Gcloud
+from Remotes import Git, Gcloud, Github
 import json
+from beautifultable import BeautifulTable
 
 """
-Create-and-push
-Generates PANOS configuration from the XML snippets and adds to the PANOS device.
+skilletcli
 
-This way you can pick and choose the aspects of iron-skillet you want without removing your entire configuration.
+This utility is designed as a CLI interface to PANOS configuration snippets.
 
-Usage:
-    python create_and_push.py
-    With no arguments, lists all available snippets and their destination xpaths
-    
-    python create_and_push.py snippetname1 snippetname2 
-    Push the listed snippetnames
+It includes several packges for retrieving snippets from supported backend storage types.
 """
-# Index of git based skillet repositories
-GIT_SKILLET_INDEX = {
-    "iron-skillet": "https://github.com/PaloAltoNetworks/iron-skillet.git"
-}
 # SKCLI credentials cache
 CREDS_FILENAME = ".skcli.json"
 KEY_DB = KeyDB(CREDS_FILENAME)
+# API
+DEFAULT_API_URL = "https://api-dot-skilletcloud-prod.appspot.com"
 
 def create_context(config_var_file):
     # read the metafile to get variables and values
@@ -160,7 +153,25 @@ def push_from_gcloud(args):
     Pull snippets from Gcloud instead of Git repos.
     :param args: parsed args from argparse
     """
-    print("{}Note: retrieval of snippets from webapi is currently experimental. Use with caution!{}".format(Fore.RED, Style.RESET_ALL))
+    if args.repopath:
+        api_url = args.repopath
+    else:
+        api_url = DEFAULT_API_URL
+
+    gc = Gcloud(api_url)
+
+    if len(args.snippetnames) == 0:
+        print("{}New: browse the available objects via SkilletCloud: https://skilletcloud-prod.appspot.com/skillets/{}{}".format(
+            Fore.GREEN, args.repository, Style.RESET_ALL))
+        snippets = gc.List(args.repository)
+        names = set()
+        for s in snippets:
+            names.add(s['name'])
+
+        for n in names:
+            print(n)
+
+        sys.exit(0)
 
     # Address must be passed, then lookup keystore if it exists.
     addr = env_or_prompt("address", args, prompt_long="address or address:port of PANOS Device to configure: ")
@@ -174,16 +185,10 @@ def push_from_gcloud(args):
         fw = Panos(addr, apikey=apikey, debug=args.debug, verify=args.validate)
 
     t = fw.get_type()
-    gc = Gcloud(args.repopath)
-    context = create_context(args.config)
-    snippets = gc.Query(args.repository, t, args.snippetstack, args.snippetnames, context)
+    v = fw.get_version()
 
-    if len(args.snippetnames) == 0:
-        print("printing available {} snippets for type {} in stack {}".format(args.repository, t, args.snippetstack))
-        snippet_names = gc.List(args.repository, t, args.snippetstack)
-        for sn in snippet_names:
-            print(sn)
-        sys.exit(0)
+    context = create_context(args.config)
+    snippets = gc.Query(args.repository, t, args.snippetstack, args.snippetnames, v, context)
 
     if len(snippets) == 0:
         print("{}Snippets {} not found for device type {}.{}".format(Fore.RED, ",".join(args.snippetnames), t,
@@ -199,22 +204,47 @@ def push_skillets(args):
     :param args: parsed args from argparse
     """
     if args.repotype == "git":
-        if args.repository not in GIT_SKILLET_INDEX:
-            if not args.repopath:
-                print("Non-registered skillet. --repopath [git url] is required.")
-                exit(1)
-
-            repo_url = args.repopath
+        github = Github()
+        repo_list = github.index()
+        repo_url ='unset'
+        repo_table = BeautifulTable()
+        repo_table.set_style(BeautifulTable.STYLE_NONE)
+        repo_table.column_headers = ['Repository Name', 'Description']
+        repo_table.column_alignments['Repository Name'] = BeautifulTable.ALIGN_LEFT
+        repo_table.column_alignments['Description'] = BeautifulTable.ALIGN_LEFT
+        repo_table.left_padding_widths['Description'] = 1
+        repo_table.header_separator_char = '-'
+        if args.repository is None:
+            print('Available Repositories are:')
+            for repo in repo_list:
+                repo_table.append_row([repo.github_info['name'],repo.github_info['description']])
+            print(repo_table)
+            exit()
         else:
-            repo_url = GIT_SKILLET_INDEX[args.repository]
-
+            for repo in repo_list:
+                if repo.github_info['name'] == args.repository:
+                    repo_url = repo.github_info['clone_url']
+                    break
+            if repo_url is 'unset':
+                print('Invalid Repository was specified. Available Repositories are:')
+                for repo in repo_list:
+                    repo_table.append_row([repo.github_info['name'],repo.github_info['description']])
+                print(repo_table)
+                exit()
         repo_name = args.repository
         g = Git(repo_url)
         g.clone(repo_name, ow=args.refresh, update=args.update)
-        if args.branch:
-            if args.branch == "list":
-                print("\n".join(g.list_branches()))
-                exit()
+        if args.branch is None:
+            print("Branches available for "+args.repository+" are :")
+            print("\n".join(g.list_branches()))
+            exit()
+        elif args.branch == "default":
+            print("Using default branch for repository.")
+        elif args.branch not in g.list_branches():
+            print("Invalid Branch was choosen. Please select from below list:")
+            print("\n".join(g.list_branches()))
+            exit()
+        else:
             g.branch(args.branch)
 
         sc = g.build()
@@ -271,10 +301,9 @@ def main():
     script_options = parser.add_argument_group("Script options")
     kdb_options = parser.add_argument_group("Keystore options")
 
-    repo_arg_group.add_argument('--repository', default="iron-skillet", metavar="repo_name", help="Name of skillet to use"
-                        .format(", ".join(GIT_SKILLET_INDEX.keys())))
+    repo_arg_group.add_argument('--repository', default="iron-skillet", help="Name of skillet to use. Use without a value to see list of all available repositories.", nargs='?')
     repo_arg_group.add_argument('--repotype', default="git", help="Type of skillet repo. Available options are [git, api, local]")
-    repo_arg_group.add_argument("--branch", help="Git repo branch to use. Use 'list' to view available branches.")
+    repo_arg_group.add_argument("--branch", default="default", help="Git repo branch to use. Use without a value to view all available branches.",nargs='?')
     repo_arg_group.add_argument('--repopath', help="Path to repository if using local repo type")
     repo_arg_group.add_argument("--refresh", help="Refresh the cloned repository directory.", action='store_true')
     repo_arg_group.add_argument("--update", help="Update the cloned repository", action='store_true')
@@ -295,8 +324,7 @@ def main():
     args = parser.parse_args()
 
     if not args.validate:
-        print("""{}Warning: SSL validation is currently disabled. Use --validate to enable it.{}
-        """.format(Fore.YELLOW, Style.RESET_ALL))
+        print("""{}Warning: SSL validation of PANOS device is currently disabled. Use --validate to enable it.{}""".format(Fore.YELLOW, Style.RESET_ALL))
         requests.packages.urllib3.disable_warnings()
 
     if args.enable_keystore:
