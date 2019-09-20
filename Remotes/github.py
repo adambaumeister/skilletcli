@@ -135,7 +135,7 @@ class Git:
     def build(self):
         """
         Build the Skillet object using the git repository.
-        :return:
+        :return: SkilletCollection instance
         """
         if not self.Repo:
             self.clone(self.name)

@@ -249,11 +249,14 @@ def push_skillets(args):
             print("Branches available for "+args.repository+" are :")
             print("\n".join(g.list_branches()))
             exit()
+        elif args.branch == "default":
+            print("Using default branch for repository.")
         elif args.branch not in g.list_branches():
             print("Invalid Branch was choosen. Please select from below list:")
             print("\n".join(g.list_branches()))
             exit()
-        g.branch(args.branch)
+        else:
+            g.branch(args.branch)
 
         sc = g.build()
     elif args.repotype == "local":
@@ -311,7 +314,7 @@ def main():
 
     repo_arg_group.add_argument('--repository', default="iron-skillet", help="Name of skillet to use. Use without a value to see list of all available repositories.", nargs='?')
     repo_arg_group.add_argument('--repotype', default="git", help="Type of skillet repo. Available options are [git, api, local]")
-    repo_arg_group.add_argument("--branch", default='master',help="Git repo branch to use. Use without a value to view all available branches.",nargs='?')
+    repo_arg_group.add_argument("--branch", default="default", help="Git repo branch to use. Use without a value to view all available branches.",nargs='?')
     repo_arg_group.add_argument('--repopath', help="Path to repository if using local repo type")
     repo_arg_group.add_argument("--refresh", help="Refresh the cloned repository directory.", action='store_true')
     repo_arg_group.add_argument("--update", help="Update the cloned repository", action='store_true')
