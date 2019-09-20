@@ -5,7 +5,9 @@ import requests
 import re
 class Panos:
     """
-    PANOS Device. Could be a firewall or PANORAMA.
+    PANOS Device class.
+
+    Represents either a firewall or panorama and provides a minimal interface to run commands.
     """
     def __init__(self, addr, apikey=None, user="admin", pw=None, connect=True, debug=False, verify=False):
         """
@@ -64,7 +66,7 @@ class Panos:
     def send(self, params):
         """
         Send a request to this PANOS device
-        :param params: dict: GET parameters for query ({ "type": "op" })
+        :param params: dict: POST parameters for query ({ "type": "op" })
         :return: GET Response type
         """
         url = self.url

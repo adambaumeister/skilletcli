@@ -5,7 +5,14 @@ class Gcloud():
     """
     Remote skillet retrieval from Gcloud based API
 
-    This class is for client-side utilties.
+    Usage::
+        # Query for a specific snippet
+        from Remotes import Gcloud
+        gc = Gcloud(https://api-dot-skilletcloud-prod.appspot.com)
+        gc.Query('iron-skillet', 'panos', 'snippets', ['tag'], '9.0', {})
+
+        # List all snippets
+        json_data = gc.List('iron-skillet')
     """
     def __init__(self, url):
         self.url = url
@@ -46,6 +53,13 @@ class Gcloud():
         return snippets
 
     def List(self, skillet_name, **kwargs):
+        """
+        List all snippets in a Skillet as JSON.
+
+        :param skillet_name: Skillet to query
+        :param kwargs: Key/value filters to append to filter.
+        :return: Json representation of snippets
+        """
         params = []
         for k,v in kwargs.items():
             params.append('{}={}'.format(k,v))

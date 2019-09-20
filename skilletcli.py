@@ -19,23 +19,12 @@ import json
 from beautifultable import BeautifulTable
 
 """
-Create-and-push
-Generates PANOS configuration from the XML snippets and adds to the PANOS device.
+skilletcli
 
-This way you can pick and choose the aspects of iron-skillet you want without removing your entire configuration.
+This utility is designed as a CLI interface to PANOS configuration snippets.
 
-Usage:
-    python create_and_push.py
-    With no arguments, lists all available snippets and their destination xpaths
-    
-    python create_and_push.py snippetname1 snippetname2 
-    Push the listed snippetnames
+It includes several packges for retrieving snippets from supported backend storage types.
 """
-
-# Index of git based skillet repositories
-GIT_SKILLET_INDEX = {
-    "iron-skillet": "https://github.com/PaloAltoNetworks/iron-skillet.git"
-}
 # SKCLI credentials cache
 CREDS_FILENAME = ".skcli.json"
 KEY_DB = KeyDB(CREDS_FILENAME)
