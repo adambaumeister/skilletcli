@@ -1,4 +1,5 @@
 from git import Repo
+import sys
 import os, stat, shutil
 import re
 from .skillet import *
@@ -66,7 +67,7 @@ class Git:
         if not check_git_exists():
             print("A git client is required to use this repository.")
             print("See README.md for more details.")
-            exit(1)
+            sys.exit(1)
 
         self.github_info = github_info
         self.repo_url = repo_url
@@ -102,7 +103,7 @@ class Git:
                     shutil.rmtree(path,ignore_errors=False, onerror=on_rm_error)
                 else:
                     print("{}Refresh specified but user did not agree to overwrite. Exiting.{}".format(Fore.RED, Style.RESET_ALL))
-                    exit(1)
+                    sys.exit(1)
             else:
                 self.Repo = Repo(path)
                 if update:

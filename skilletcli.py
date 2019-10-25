@@ -219,7 +219,7 @@ def push_skillets(args):
             for repo in repo_list:
                 repo_table.append_row([repo.github_info['name'],repo.github_info['description']])
             print(repo_table)
-            exit()
+            sys.exit(0)
         else:
             for repo in repo_list:
                 if repo.github_info['name'] == args.repository:
@@ -230,20 +230,20 @@ def push_skillets(args):
                 for repo in repo_list:
                     repo_table.append_row([repo.github_info['name'],repo.github_info['description']])
                 print(repo_table)
-                exit()
+                sys.exit(0)
         repo_name = args.repository
         g = Git(repo_url)
         g.clone(repo_name, ow=args.refresh, update=args.update)
         if args.branch is None:
             print("Branches available for "+args.repository+" are :")
             print("\n".join(g.list_branches()))
-            exit()
+            sys.exit(0)
         elif args.branch == "default":
             print("Using default branch for repository.")
         elif args.branch not in g.list_branches():
             print("Invalid Branch was choosen. Please select from below list:")
             print("\n".join(g.list_branches()))
-            exit()
+            sys.exit(0)
         else:
             g.branch(args.branch)
 
