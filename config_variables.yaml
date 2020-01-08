@@ -153,3 +153,15 @@ variables:
 
   - name: EGW_SSL_PROFILE
     value: egw
+
+  - name: sdwan_branch_template
+    value: test
+
+  - name: sdwan_hub_template
+    value: test_hub
+
+  - name: sdwan_branch_stack
+    value: test_stack
+
+  - name: sdwan_hub_stack
+    value: test_hub_stack

@@ -48,7 +48,7 @@ matrix:
       language: shell       # 'language: python' is an error on Travis CI Windows
       # python: 3.7         # 'python:' is ignored on Travis CI Windows
       before_install:
-        - choco install python  # this install takes at least 1 min 30 sec
+        - choco install python --version=3.7.2  # this install takes at least 1 min 30 sec
         - python -m pip install --upgrade pip
         - python -m pip install pytest
       env: PATH=/c/Python37:/c/Python37/Scripts:$PATH
