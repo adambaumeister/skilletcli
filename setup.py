@@ -9,7 +9,7 @@ README = (HERE / "README.md").read_text()
 
 setup(
     name='skilletcli',
-    version='2.0.0',
+    version='2.0.1',
     packages=['Remotes', 'panos'],
     scripts=['skilletcli.py'],
     url='https://github.com/adambaumeister/skilletcli',
