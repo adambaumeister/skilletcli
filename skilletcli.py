@@ -206,7 +206,7 @@ def push_skillets(args):
     if args.repotype == "git":
         github = Github()
         repo_list = github.index()
-        repo_url ='unset'
+        repo_url = args.repopath
         repo_table = BeautifulTable()
         repo_table.set_style(BeautifulTable.STYLE_NONE)
         repo_table.column_headers = ['Repository Name', 'Description']
@@ -304,7 +304,7 @@ def main():
     repo_arg_group.add_argument('--repository', default="iron-skillet", help="Name of skillet to use. Use without a value to see list of all available repositories.", nargs='?')
     repo_arg_group.add_argument('--repotype', default="git", help="Type of skillet repo. Available options are [git, api, local]")
     repo_arg_group.add_argument("--branch", default="default", help="Git repo branch to use. Use without a value to view all available branches.",nargs='?')
-    repo_arg_group.add_argument('--repopath', help="Path to repository if using local repo type")
+    repo_arg_group.add_argument('--repopath', help="Path to repository")
     repo_arg_group.add_argument("--refresh", help="Refresh the cloned repository directory.", action='store_true')
     repo_arg_group.add_argument("--update", help="Update the cloned repository", action='store_true')
 
