@@ -130,6 +130,18 @@ def test_gpskillet():
     test_snippets = ['all']
     push_test(sc, test_stack, test_snippets)
 
+def test_get_type():
+    if not os.getenv("SKCLI_DEVICE_TEST"):
+        pytest.skip("No environment to run device tests against.")
+        return
+
+    addr = os.getenv("SKCLI_ADDRESS")
+    user = os.getenv("SKCLI_USERNAME")
+    pw = os.getenv("SKCLI_PASSWORD")
+    fw = Panos(addr, user=user, pw=pw, debug=True)
+
+    fw.get_type()
+    assert len(fw.system_info.keys()) > 1
 
 def push_test(sc, test_stack, test_snippets):
     """
@@ -240,4 +252,4 @@ def try_all_branches(g, branches):
             print("Invalid branch {}:{} - branch does not exist".format(g.name,branch))
 
 if __name__ == '__main__':
-    test_get_first_real_dir()
+    test_get_type()

@@ -28,6 +28,8 @@ class Panos:
         self.user = user
         self.pw = pw
         self.key = ''
+        self.model = ''
+        self.system_info = {}
         if debug == True:
             self.log_level = 1
         else:
@@ -104,6 +106,13 @@ class Panos:
         # Get the device type
         elem = root.findall("./result/system/model")
         t = elem[0].text
+        self.model = t
+
+        system_info = root.find("./result/system")
+
+        for c in system_info:
+            self.system_info[c.tag] = c.text
+
         type_result = self.get_type_from_info(t)
 
         # Get the device version
