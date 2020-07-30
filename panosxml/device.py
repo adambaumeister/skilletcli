@@ -134,7 +134,7 @@ class Panos:
             if re.search(regex, t.lower()):
                 return result
 
-        return "panosxml"
+        return "panos"
 
     def log(self, l, level=1):
         if level <= self.log_level:

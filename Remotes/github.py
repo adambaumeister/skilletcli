@@ -191,11 +191,11 @@ class Git:
             fp = template_dir + os.sep + dir
             if not os.path.isfile(fp):
                 # If dir is a valid type
-                if dir in ['panosxml', 'panorama']:
+                if dir in ['panos', 'panorama']:
                     skillet_types[dir] = fp
                 # Otherwise, if the directory is a snippet directory default to PANOS
                 elif self.is_snippet_dir(fp):
-                    skillet_types['panosxml'] = template_dir + os.sep
+                    skillet_types['panos'] = template_dir + os.sep
 
         return skillet_types
 

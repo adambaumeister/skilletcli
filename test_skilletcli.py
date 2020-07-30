@@ -71,7 +71,7 @@ def test_select_entry(g):
     """
     sc = g.build()
     context = create_context("config_variables.yaml")
-    sk = sc.get_skillet("panosxml")
+    sk = sc.get_skillet("panos")
     sk.template(context)
     snippets = sk.select_snippets("snippets", ["tag/Outbound"])
 
@@ -87,7 +87,7 @@ def test_type_switch():
     r = p.get_type_from_info("M-200")
     assert r == "panorama"
     r = p.get_type_from_info("PA-VM")
-    assert r == "panosxml"
+    assert r == "panos"
 
 # Below are functions for testing individual skillets.
 # This provides an interface through pytest to validate that a skillet works.
@@ -217,11 +217,11 @@ def try_all_branches(g, branches):
         try:
             g.branch(branch)
             sc = g.build()
-            sk = sc.get_skillet("panosxml")
+            sk = sc.get_skillet("panos")
             # If it works, return it
             return sk
         except ValueError:
-            print("Invalid branch {}:{} - no valid panosxml objects".format(g.name,branch))
+            print("Invalid branch {}:{} - no valid panos objects".format(g.name,branch))
         except GitCommandError:
             print("Invalid branch {}:{} - branch does not exist".format(g.name,branch))
 

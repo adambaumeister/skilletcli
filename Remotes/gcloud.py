@@ -9,7 +9,7 @@ class Gcloud():
         # Query for a specific snippet
         from Remotes import Gcloud
         gc = Gcloud(https://api-dot-skilletcloud-prod.appspot.com)
-        gc.Query('iron-skillet', 'panosxml', 'snippets', ['tag'], '9.0', {})
+        gc.Query('iron-skillet', 'panos', 'snippets', ['tag'], '9.0', {})
 
         # List all snippets
         json_data = gc.List('iron-skillet')
