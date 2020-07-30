@@ -1,6 +1,6 @@
 from Remotes import Git, Github
 from skilletcli import create_context, set_at_path, check_resp, CREDS_FILENAME
-from panos import KeyDB
+from panosxml import KeyDB
 from pytest import fixture
 from skilletcli import Panos
 import os
@@ -71,33 +71,11 @@ def test_select_entry(g):
     """
     sc = g.build()
     context = create_context("config_variables.yaml")
-    sk = sc.get_skillet("panos")
+    sk = sc.get_skillet("panosxml")
     sk.template(context)
     snippets = sk.select_snippets("snippets", ["tag/Outbound"])
 
     assert len(snippets) == 1
-
-def test_gpsskillet(gps):
-    """
-    Same as above but using the alt directory structure
-    """
-    sc = gps.build()
-    context = create_context("config_variables.yaml")
-    sk = sc.get_skillet("panos")
-    sk.template(context)
-    snippets = sk.select_snippets("basic", ["Rulebase"])
-    assert len(snippets) > 0
-
-def test_hskskillet(hsk):
-    """
-    Same as above but using the alt directory structure
-    """
-    sc = hsk.build()
-    context = create_context("config_variables.yaml")
-    sk = sc.get_skillet("panos")
-    sk.template(context)
-    snippets = sk.select_snippets("HomeSkillet_base", ["address"])
-    assert len(snippets) > 0
 
 def test_type_switch():
     """
@@ -109,7 +87,7 @@ def test_type_switch():
     r = p.get_type_from_info("M-200")
     assert r == "panorama"
     r = p.get_type_from_info("PA-VM")
-    assert r == "panos"
+    assert r == "panosxml"
 
 # Below are functions for testing individual skillets.
 # This provides an interface through pytest to validate that a skillet works.
@@ -117,14 +95,6 @@ def test_iron_skillet(g):
     """
     Test the "iron-skillet" snippet
     """
-    sc = g.build()
-    test_stack = 'snippets'
-    test_snippets = ['all']
-    push_test(sc, test_stack, test_snippets)
-
-def test_gpskillet():
-    g = Git("https://github.com/adambaumeister/gpskillet.git")
-    g.clone("gpskillet")
     sc = g.build()
     test_stack = 'snippets'
     test_snippets = ['all']
@@ -222,6 +192,10 @@ def test_all_github_repos():
     This test function retrieves all of the skillets marked with the "skillets" topic from github
     It then clones them, and validates it can retrieve their snippets.
     """
+    if not os.getenv("TEST_FROM_GITHUB"):
+        pytest.skip("Github tests not requested.")
+        return
+
     branches = ['master', 'panos_v90', 'panos_v9.0', 'panos_v8.1', 'panos_v81']
     counts = {}
     github = Github()
@@ -243,11 +217,11 @@ def try_all_branches(g, branches):
         try:
             g.branch(branch)
             sc = g.build()
-            sk = sc.get_skillet("panos")
+            sk = sc.get_skillet("panosxml")
             # If it works, return it
             return sk
         except ValueError:
-            print("Invalid branch {}:{} - no valid panos objects".format(g.name,branch))
+            print("Invalid branch {}:{} - no valid panosxml objects".format(g.name,branch))
         except GitCommandError:
             print("Invalid branch {}:{} - branch does not exist".format(g.name,branch))
 

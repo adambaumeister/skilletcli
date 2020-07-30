@@ -11,7 +11,7 @@ class Panos:
     """
     def __init__(self, addr, apikey=None, user="admin", pw=None, connect=True, debug=False, verify=False):
         """
-        Initialize a new panos object
+        Initialize a new panosxml object
         :param addr: NAME:PORT combination (ex. l72.16.0.1:443)
         :param user: username
         :param pw: password
@@ -86,7 +86,7 @@ class Panos:
         """
         Get the type of PANOS device using show system info
 
-        :param panos: PANOS device object
+        :param panosxml: PANOS device object
         :return:
         """
         params = {
@@ -134,7 +134,7 @@ class Panos:
             if re.search(regex, t.lower()):
                 return result
 
-        return "panos"
+        return "panosxml"
 
     def log(self, l, level=1):
         if level <= self.log_level:
