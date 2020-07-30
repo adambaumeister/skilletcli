@@ -175,7 +175,7 @@ class Git:
         sc = SkilletCollection(self.name)
 
         # This splits all the snippet directories into SnippetStack instances.
-        # It uses the metadata 'type' to then add them to the correct skillet (usually 'panos' or 'panorama')
+        # It uses the metadata 'type' to then add them to the correct skillet (usually 'panosxml' or 'panorama')
         for name, fp in skillet_types.items():
             snippet_stacks = self.get_snippets_in_dir(fp)
             for ss_name, ss in snippet_stacks.items():

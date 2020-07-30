@@ -7,9 +7,9 @@ import requests
 from yaml.scanner import ScannerError
 from xml.etree import ElementTree
 from xml.etree.ElementTree import ParseError
-from panos import Panos
+from panosxml import Panos
 from colorama import init as colorama_init
-from panos import KeyDB
+from panosxml import KeyDB
 import re
 from colorama import Fore, Back, Style
 import getpass
@@ -77,7 +77,7 @@ def sanitize_element(element):
 def set_at_path(panos, xpath, elementvalue):
     """
     Runs a "set" action against a given xpath.
-    :param panos: .panos object
+    :param panos: .panosxml object
     :param xpath: xpath to set at
     :param elementvalue: Element value to set
     :return: GET Response page

@@ -21,7 +21,7 @@ class Gcloud():
         """
         Query the skillet API.
         :param skillet_name: Name of skillet, such as iron-skillet, to query
-        :param type: Device type (panorama|panos)
+        :param type: Device type (panorama|panosxml)
         :param stack: Stack to retrieve snippets from (snippets)
         :param snippet_names: List of snippets to retrieve
         :param context: Template variables
