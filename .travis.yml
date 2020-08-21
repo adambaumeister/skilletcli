@@ -6,6 +6,7 @@ matrix:
     - name: "Python 3.7.1 on Xenial Linux"
       python: 3.7           # this works for Linux but is ignored on macOS or Windows
       dist: xenial          # required for Python >= 3.7
+      before_install: pip3 install --upgrade setuptools
       after_success:
         - pyinstaller --onefile skilletcli.py
         - ls -l dist
